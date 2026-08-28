@@ -68,7 +68,9 @@ import Layout from '../../layouts/Layout.astro';
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ quantity }),
         });
-        const result = await response.json();
+        const result = await response.json().catch(() => ({
+          error: 'Admin API is unavailable. Run the site with Wrangler, not Astro dev.',
+        }));
 
         if (!response.ok) throw new Error(result.error || 'Could not create gifts.');
 

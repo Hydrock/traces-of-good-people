@@ -25,8 +25,8 @@ export async function onRequestGet({ request, env }) {
       ...trace,
       giftNumber: giftsByCode.get(trace.gift)?.id || null,
       photoUrl:
-        trace.photo && env.MEDIA_PUBLIC_URL
-          ? `${env.MEDIA_PUBLIC_URL.replace(/\/$/, '')}/${trace.photo}`
+        trace.photo
+          ? `${(env.MEDIA_PUBLIC_URL || `${new URL(request.url).origin}/media`).replace(/\/$/, '')}/${trace.photo}`
           : null,
     }))
     .sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt));

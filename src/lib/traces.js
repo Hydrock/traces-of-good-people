@@ -37,8 +37,8 @@ export function loadApprovedTraces() {
 function getPhotoUrl(photo) {
   if (!photo || photo.startsWith('https://')) return photo;
 
-  const mediaUrl = import.meta.env.PUBLIC_MEDIA_URL;
-  return mediaUrl ? `${mediaUrl.replace(/\/$/, '')}/${photo}` : null;
+  const mediaUrl = import.meta.env.PUBLIC_MEDIA_URL || '/media';
+  return `${mediaUrl.replace(/\/$/, '')}/${photo}`;
 }
 
 export function formatTraceDate(date) {

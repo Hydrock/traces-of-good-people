@@ -48,7 +48,9 @@ import Layout from '../../layouts/Layout.astro';
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action }),
         });
-        const result = await response.json();
+        const result = await response.json().catch(() => ({
+          error: 'Admin API is unavailable. Run the site with Wrangler, not Astro dev.',
+        }));
 
         if (!response.ok) throw new Error(result.error || 'Moderation failed.');
 
@@ -65,7 +67,9 @@ import Layout from '../../layouts/Layout.astro';
     async function loadPendingTraces() {
       try {
         const response = await fetch('/api/admin/traces', { headers: { Accept: 'application/json' } });
-        const result = await response.json();
+        const result = await response.json().catch(() => ({
+          error: 'Admin API is unavailable. Run the site with Wrangler, not Astro dev.',
+        }));
 
         if (!response.ok) throw new Error(result.error || 'Could not load traces.');
         if (!result.traces.length) {

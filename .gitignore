@@ -143,3 +143,5 @@ vite.config.ts.timestamp-*
 .vite/
 .astro/
 .DS_Store
+.dev.vars
+.wrangler/
