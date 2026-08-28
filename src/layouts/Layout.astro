@@ -19,10 +19,25 @@ const {
   <body>
     <header class="site-header">
       <a class="wordmark" href="/">Traces of Good People</a>
-      <nav aria-label="Main navigation">
-        <a href="/people">People</a>
-        <a href="/about">About</a>
-      </nav>
+      <div class="site-header__actions">
+        <nav aria-label="Main navigation">
+          <a href="/people">People</a>
+          <a href="/about">About</a>
+        </nav>
+        <label class="site-language">
+          <span>Language</span>
+          <select data-language-select aria-label="Language">
+            <option value="en">🇬🇧 English</option>
+            <option value="ru">🇷🇺 Русский</option>
+            <option value="es">🇪🇸 Español</option>
+            <option value="fr">🇫🇷 Français</option>
+            <option value="pt">🇵🇹 Português</option>
+            <option value="ar">🇸🇦 العربية</option>
+            <option value="zh">🇨🇳 中文</option>
+            <option value="hi">🇮🇳 हिन्दी</option>
+          </select>
+        </label>
+      </div>
     </header>
 
     <main>
@@ -32,5 +47,23 @@ const {
     <footer class="site-footer">
       <p>Small gifts. Random meetings. Good people.</p>
     </footer>
+
+    <script>
+      const languageSelect = document.querySelector('[data-language-select]');
+      const supportedLanguages = new Set(['en', 'ru', 'es', 'fr', 'pt', 'ar', 'zh', 'hi']);
+      const languageCookie = document.cookie
+        .split('; ')
+        .find((value) => value.startsWith('traces_language='));
+      const savedLanguage = languageCookie
+        ? decodeURIComponent(languageCookie.split('=').slice(1).join('='))
+        : '';
+
+      if (supportedLanguages.has(savedLanguage)) languageSelect.value = savedLanguage;
+
+      languageSelect.addEventListener('change', () => {
+        const secure = location.protocol === 'https:' ? '; Secure' : '';
+        document.cookie = `traces_language=${encodeURIComponent(languageSelect.value)}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
+      });
+    </script>
   </body>
 </html>

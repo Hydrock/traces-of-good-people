@@ -1,5 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { Image } from 'astro:assets';
+import backpack from '../assets/backpack.png';
 ---
 
 <Layout
@@ -7,8 +9,20 @@ import Layout from '../layouts/Layout.astro';
   description="About Traces of Good People, a travelling project built around small gifts and chance meetings."
 >
   <article class="page">
-    <p class="eyebrow">About</p>
-    <h1>A record of small, good encounters.</h1>
+    <div class="about-hero">
+      <div>
+        <p class="eyebrow">About</p>
+        <h1>A record of small, good encounters.</h1>
+      </div>
+
+      <figure class="about-illustration">
+        <Image
+          src={backpack}
+          alt="A travel backpack filled with postcards"
+          loading="eager"
+        />
+      </figure>
+    </div>
 
     <div class="prose">
       <p>
