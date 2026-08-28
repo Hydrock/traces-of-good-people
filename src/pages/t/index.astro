@@ -11,45 +11,14 @@ import hi from '../../i18n/hi.json';
 
 const translations = { en, ru, es, fr, pt, ar, zh, hi };
 
-export function getStaticPaths() {
-  const giftFiles = import.meta.glob('../../../data/gifts/*.json', {
-    eager: true,
-    import: 'default',
-  });
-
-  const codes = new Set();
-
-  return Object.entries(giftFiles).map(([file, gift]) => {
-    const validGift =
-      gift &&
-      /^\d{4}$/.test(gift.id) &&
-      /^[A-Z0-9]{5}$/.test(gift.code) &&
-      /^\d{4}-\d{2}-\d{2}$/.test(gift.createdAt);
-
-    if (!validGift) {
-      throw new Error(`Invalid gift data in ${file}`);
-    }
-
-    if (codes.has(gift.code)) {
-      throw new Error(`Duplicate gift code: ${gift.code}`);
-    }
-
-    codes.add(gift.code);
-
-    return {
-      params: { code: gift.code },
-      props: { gift },
-    };
-  });
-}
-
-const { gift } = Astro.props;
 ---
 
 <Layout
-  title={`TRACE #${gift.id} — Traces of Good People`}
-  description={`The story of TRACE #${gift.id}, a small gift travelling between good people.`}
+  title="A gift — Traces of Good People"
+  description="A small gift travelling between good people."
 >
+  <p class="form-status" data-gift-status role="status">Loading gift…</p>
+  <div data-gift-content hidden>
   <section class="language-picker">
     <label for="language" data-i18n="languageLabel">Language</label>
     <select id="language" name="language" form="trace-form">
@@ -65,7 +34,7 @@ const { gift } = Astro.props;
   </section>
 
   <article class="trace-intro">
-    <p class="trace-number">TRACE #{gift.id}</p>
+    <p class="trace-number" data-trace-number></p>
     <h1 data-i18n="heading">This gift found its way to you.</h1>
     <p class="intro" data-i18n="intro">
       It is part of a small travelling project about chance meetings and the
@@ -80,7 +49,7 @@ const { gift } = Astro.props;
     </div>
 
     <form id="trace-form" action="/api/traces" method="post" enctype="multipart/form-data">
-      <input type="hidden" name="gift" value={gift.code} />
+      <input type="hidden" name="gift" />
 
       <div class="field">
         <label for="name">
@@ -151,8 +120,25 @@ const { gift } = Astro.props;
     </form>
   </section>
 
+  </div>
   <script type="application/json" id="translations" set:html={JSON.stringify(translations)} />
   <script>
+    const giftStatus = document.querySelector('[data-gift-status]');
+    const giftContent = document.querySelector('[data-gift-content]');
+    const giftCode = location.pathname.split('/').filter(Boolean).at(-1)?.toUpperCase();
+    const giftResponse = await fetch(`/api/gifts/${encodeURIComponent(giftCode || '')}`);
+
+    if (giftResponse.ok) {
+      const gift = await giftResponse.json();
+      document.querySelector('[data-trace-number]').textContent = `TRACE #${gift.id}`;
+      document.querySelector('input[name="gift"]').value = gift.code;
+      document.title = `TRACE #${gift.id} — Traces of Good People`;
+      giftStatus.hidden = true;
+      giftContent.hidden = false;
+    } else {
+      giftStatus.textContent = 'Gift not found.';
+    }
+
     const languageSelect = document.querySelector('#language');
     const translationsElement = document.querySelector('#translations');
     const translations = JSON.parse(translationsElement.textContent);

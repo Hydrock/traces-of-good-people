@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "astro dev",
     "dev:full": "npm run build && wrangler pages dev dist",
-    "prebuild": "node scripts/generate-gift-manifest.js",
     "build": "astro build",
     "preview": "astro preview",
     "deploy": "npm run build && wrangler pages deploy dist --project-name traces-of-good-people"

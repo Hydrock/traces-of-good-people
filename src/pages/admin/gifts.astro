@@ -98,7 +98,7 @@ import Layout from '../../layouts/Layout.astro';
           results.append(card);
         }
 
-        status.textContent = `${result.gifts.length} gift${result.gifts.length === 1 ? '' : 's'} created. QR pages will work after the Cloudflare deployment finishes.`;
+        status.textContent = `${result.gifts.length} gift${result.gifts.length === 1 ? '' : 's'} created. QR pages are ready now.`;
       } catch (error) {
         status.textContent = error.message;
       } finally {

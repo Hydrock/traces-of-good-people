@@ -31,9 +31,8 @@ data is stored under `.wrangler/` and is ignored by Git.
 `LOCAL_ADMIN=true` works only for requests whose hostname is `localhost` or
 `127.0.0.1`. Do not configure this variable in Cloudflare production.
 
-Submitting a trace and rejecting it can be tested entirely locally. Approving
-a trace and generating gifts write to GitHub, so add `GITHUB_TOKEN` to
-`.dev.vars` only if that is intentional. Prefer a test repository.
+Submitting, moderating, and generating gifts can be tested entirely locally.
+All mutable data is stored in the local R2 emulation under `.wrangler/`.
 
 ## Production setup
 
@@ -59,17 +58,14 @@ a trace and generating gifts write to GitHub, so add `GITHUB_TOKEN` to
    MEDIA_BUCKET  -> traces-of-good-people-media
    ```
 
-4. Configure these runtime variables and secrets:
+4. Configure the runtime administrator variable:
 
    ```text
-   ADMIN_EMAILS       comma-separated administrator emails
-   GITHUB_REPOSITORY  Hydrock/traces-of-good-people
-   GITHUB_BRANCH      main
-   GITHUB_TOKEN       fine-grained token with Contents: Read and write
+   ADMIN_EMAILS  comma-separated administrator emails
    ```
 
-   `GITHUB_TOKEN` must be stored as an encrypted secret, never as a public build
-   variable or committed file.
+   `GITHUB_TOKEN`, `GITHUB_REPOSITORY`, and `GITHUB_BRANCH` are no longer used
+   and may be removed from the Pages project.
 
 5. Protect these paths with a Cloudflare Access self-hosted application:
 
@@ -91,8 +87,11 @@ a trace and generating gifts write to GitHub, so add `GITHUB_TOKEN` to
 7. Add a Cloudflare rate-limiting rule for `POST /api/traces` if real traffic
    shows spam. Start conservatively and keep legitimate QR visitors unblocked.
 
-The public media endpoint is `/media/photos/...`. JSON metadata stays in the
-private `TRACES_BUCKET`; only photo objects can be read through that endpoint.
+Gift and trace JSON metadata stays in the private `TRACES_BUCKET`. Photos stay
+in `MEDIA_BUCKET` and are read through the public `/media/photos/...` endpoint.
+The five original repository gifts are copied into R2 automatically on first
+use. New gifts and moderation changes are available immediately and do not
+trigger a deployment.
 
 ## Production checklist
 
@@ -100,7 +99,7 @@ private `TRACES_BUCKET`; only photo objects can be read through that endpoint.
 - Switch every language, including Arabic RTL.
 - Submit text with and without a photo.
 - Confirm the new item appears only in `/admin` as pending.
-- Approve it and wait for the GitHub-triggered Pages rebuild.
-- Confirm it appears in `/people` only after that rebuild.
+- Approve it and confirm it appears in `/people` immediately.
+- Delete it and confirm it disappears without a Pages rebuild.
 - Reject a test item and confirm its photo returns 404.
 - Confirm unauthenticated requests cannot open `/admin` or `/api/admin`.

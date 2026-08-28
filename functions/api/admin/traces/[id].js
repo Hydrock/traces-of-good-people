@@ -1,49 +1,4 @@
 import { isAdmin, jsonResponse, unauthorized } from '../../../lib/admin.js';
-import {
-  deletePublishedTrace,
-  getPublishedTrace,
-} from '../../../lib/github-traces.js';
-
-function encodeBase64(value) {
-  const bytes = new TextEncoder().encode(value);
-  let binary = '';
-
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary);
-}
-
-async function publishTrace(trace, env) {
-  if (!env.GITHUB_TOKEN || !env.GITHUB_REPOSITORY) {
-    throw new Error('GitHub publishing is not configured.');
-  }
-
-  const branch = env.GITHUB_BRANCH || 'main';
-  const path = `data/traces/${trace.id}.json`;
-  const url = `https://api.github.com/repos/${env.GITHUB_REPOSITORY}/contents/${path}`;
-  const headers = {
-    Accept: 'application/vnd.github+json',
-    Authorization: `Bearer ${env.GITHUB_TOKEN}`,
-    'User-Agent': 'traces-of-good-people',
-    'X-GitHub-Api-Version': '2022-11-28',
-  };
-  const existing = await fetch(`${url}?ref=${encodeURIComponent(branch)}`, { headers });
-  const existingFile = existing.ok ? await existing.json() : null;
-  const content = `${JSON.stringify(trace, null, 2)}\n`;
-  const response = await fetch(url, {
-    method: 'PUT',
-    headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      message: `Approve trace ${trace.id}`,
-      content: encodeBase64(content),
-      branch,
-      ...(existingFile?.sha ? { sha: existingFile.sha } : {}),
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`GitHub returned ${response.status}.`);
-  }
-}
 
 export async function onRequestPost({ request, env, params }) {
   if (!isAdmin(request, env)) return unauthorized();
@@ -68,17 +23,15 @@ export async function onRequestPost({ request, env, params }) {
   const sourceStatus = body.action === 'delete' ? 'approved' : 'pending';
   const sourceKey = `traces/${sourceStatus}/${id}.json`;
   const object = await env.TRACES_BUCKET.get(sourceKey);
-  const published = body.action === 'delete' ? await getPublishedTrace(id, env) : null;
-  if (!object && !published) return jsonResponse({ error: 'Trace not found.' }, 404);
+  if (!object) return jsonResponse({ error: 'Trace not found.' }, 404);
 
-  const trace = object ? await object.json() : published.trace;
+  const trace = await object.json();
   if (trace.id !== id || trace.status !== sourceStatus) {
     return jsonResponse({ error: `Invalid ${sourceStatus} trace.` }, 409);
   }
 
   try {
     if (body.action === 'delete') {
-      await deletePublishedTrace(id, env);
       await env.TRACES_BUCKET.delete(sourceKey);
       if (trace.photo) await env.MEDIA_BUCKET.delete(trace.photo);
       return jsonResponse({ id, status: 'deleted' });
@@ -86,7 +39,6 @@ export async function onRequestPost({ request, env, params }) {
 
     if (body.action === 'approve') {
       trace.status = 'approved';
-      await publishTrace(trace, env);
       await env.TRACES_BUCKET.put(`traces/approved/${id}.json`, JSON.stringify(trace, null, 2), {
         httpMetadata: { contentType: 'application/json' },
       });

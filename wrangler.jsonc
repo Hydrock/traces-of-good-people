@@ -3,10 +3,6 @@
   "name": "traces-of-good-people",
   "compatibility_date": "2026-08-28",
   "pages_build_output_dir": "./dist",
-  "vars": {
-    "GITHUB_REPOSITORY": "Hydrock/traces-of-good-people",
-    "GITHUB_BRANCH": "main"
-  },
   "r2_buckets": [
     {
       "binding": "TRACES_BUCKET",

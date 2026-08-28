@@ -1,4 +1,4 @@
-import gifts from '../generated/gifts.js';
+import { ensureSeedGifts, getGift, listJson, publicTrace } from '../lib/storage.js';
 const languages = new Set(['en', 'ru', 'es', 'fr', 'pt', 'ar', 'zh', 'hi']);
 const photoTypes = {
   'image/jpeg': 'jpg',
@@ -59,7 +59,8 @@ export async function onRequestPost({ request, env }) {
   const consent = form.get('consent');
   const photo = form.get('photo');
 
-  if (!gifts.some((gift) => gift.code === giftCode)) {
+  await ensureSeedGifts(env);
+  if (!(await getGift(env, giftCode))) {
     return jsonResponse({ error: 'Unknown gift code.' }, 400);
   }
 
@@ -125,4 +126,15 @@ export async function onRequestPost({ request, env }) {
     console.error('Could not store trace', error);
     return jsonResponse({ error: 'Could not store submission.' }, 500);
   }
+}
+
+export async function onRequestGet({ request, env }) {
+  if (!env.TRACES_BUCKET) return jsonResponse({ error: 'Storage is not configured.' }, 503);
+
+  const traces = (await listJson(env, 'traces/approved/'))
+    .filter((trace) => trace?.status === 'approved')
+    .map((trace) => publicTrace(trace, request, env))
+    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+
+  return jsonResponse({ traces });
 }

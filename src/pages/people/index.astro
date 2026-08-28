@@ -1,8 +1,5 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { formatTraceDate, loadApprovedTraces } from '../../lib/traces.js';
-
-const traces = loadApprovedTraces();
 ---
 
 <Layout
@@ -14,25 +11,47 @@ const traces = loadApprovedTraces();
     <h1>Traces left along the way.</h1>
   </header>
 
-  {traces.length > 0 ? (
-    <ol class="people-grid">
-      {traces.map((trace) => (
-        <li>
-          <a class:list={['person-card', { 'person-card--text': !trace.photoUrl }]} href={`/people/${trace.id}`}>
-            {trace.photoUrl && <img src={trace.photoUrl} alt="" loading="lazy" />}
-            <div class="person-card__body">
-              <p class="person-card__message">“{trace.message}”</p>
-              <div class="person-card__meta">
-                <span>{trace.name || 'Anonymous'}</span>
-                {trace.location && <span>{trace.location}</span>}
-                <time datetime={trace.createdAt}>{formatTraceDate(trace.createdAt)}</time>
-              </div>
-            </div>
-          </a>
-        </li>
-      ))}
-    </ol>
-  ) : (
-    <p class="empty-state">No approved traces yet.</p>
-  )}
+  <ol class="people-grid" data-people-list></ol>
+  <p class="empty-state" data-people-status>Loading traces…</p>
+
+  <template id="person-card-template">
+    <li><a class="person-card"><div class="person-card__body"><p class="person-card__message"></p><div class="person-card__meta"></div></div></a></li>
+  </template>
+
+  <script>
+    const list = document.querySelector('[data-people-list]');
+    const status = document.querySelector('[data-people-status]');
+    const template = document.querySelector('#person-card-template');
+    const formatDate = (date) => new Intl.DateTimeFormat('en', { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(date));
+
+    try {
+      const response = await fetch('/api/traces');
+      if (!response.ok) throw new Error();
+      const { traces } = await response.json();
+      status.textContent = traces.length ? '' : 'No approved traces yet.';
+      for (const trace of traces) {
+        const item = template.content.firstElementChild.cloneNode(true);
+        const link = item.querySelector('a');
+        link.href = `/people/${trace.id}`;
+        if (!trace.photoUrl) link.classList.add('person-card--text');
+        else {
+          const image = document.createElement('img');
+          image.src = trace.photoUrl;
+          image.alt = '';
+          image.loading = 'lazy';
+          link.prepend(image);
+        }
+        item.querySelector('.person-card__message').textContent = `“${trace.message}”`;
+        const meta = item.querySelector('.person-card__meta');
+        for (const value of [trace.name || 'Anonymous', trace.location, formatDate(trace.createdAt)].filter(Boolean)) {
+          const span = document.createElement('span');
+          span.textContent = value;
+          meta.append(span);
+        }
+        list.append(item);
+      }
+    } catch {
+      status.textContent = 'Could not load traces.';
+    }
+  </script>
 </Layout>
