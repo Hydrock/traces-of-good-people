@@ -115,7 +115,7 @@ const translations = { en, ru, es, fr, pt, ar, zh, hi };
       </label>
 
       <button type="submit" data-i18n="submit">Send trace</button>
-      <p class="form-status" role="status" aria-live="polite"></p>
+      <p class="form-status" role="status" aria-live="polite" tabindex="-1"></p>
     </form>
   </section>
 
@@ -238,6 +238,9 @@ const translations = { en, ru, es, fr, pt, ar, zh, hi };
 
       const selected = translations[languageSelect.value] || translations.en;
       submitButton.disabled = true;
+      form.setAttribute('aria-busy', 'true');
+      form.classList.add('form--sending');
+      formStatus.classList.remove('form-status--success', 'form-status--error');
       formStatus.textContent = selected.sending;
 
       try {
@@ -252,11 +255,17 @@ const translations = { en, ru, es, fr, pt, ar, zh, hi };
         await sendForm(formData);
 
         form.reset();
+        formStatus.classList.add('form-status--success');
         formStatus.textContent = selected.success;
+        formStatus.focus({ preventScroll: true });
+        formStatus.scrollIntoView({ behavior: 'smooth', block: 'center' });
       } catch (error) {
         console.error(error);
+        formStatus.classList.add('form-status--error');
         formStatus.textContent = selected.error;
       } finally {
+        form.removeAttribute('aria-busy');
+        form.classList.remove('form--sending');
         submitButton.disabled = false;
       }
     });
