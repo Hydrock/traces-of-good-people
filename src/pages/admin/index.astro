@@ -1,0 +1,103 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Moderation — Traces of Good People" description="Private moderation dashboard.">
+  <header class="admin-header">
+    <p class="eyebrow">Admin</p>
+    <h1>Pending traces.</h1>
+    <p class="admin-status" role="status" aria-live="polite">Loading…</p>
+  </header>
+
+  <div class="moderation-list"></div>
+
+  <template id="trace-template">
+    <article class="moderation-card">
+      <img class="moderation-card__photo" alt="Submitted for moderation" />
+      <div class="moderation-card__content">
+        <p class="moderation-card__gift"></p>
+        <h2 class="moderation-card__name"></h2>
+        <p class="moderation-card__location"></p>
+        <blockquote class="moderation-card__message"></blockquote>
+        <time class="moderation-card__date"></time>
+        <div class="moderation-card__actions">
+          <button type="button" data-action="approve">Approve</button>
+          <button class="button-secondary" type="button" data-action="reject">Reject</button>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <script>
+    const list = document.querySelector('.moderation-list');
+    const status = document.querySelector('.admin-status');
+    const template = document.querySelector('#trace-template');
+
+    async function moderate(card, id, action) {
+      const buttons = card.querySelectorAll('button');
+      buttons.forEach((button) => (button.disabled = true));
+      status.textContent = `${action === 'approve' ? 'Approving' : 'Rejecting'} trace…`;
+
+      try {
+        const response = await fetch(`/api/admin/traces/${encodeURIComponent(id)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action }),
+        });
+        const result = await response.json();
+
+        if (!response.ok) throw new Error(result.error || 'Moderation failed.');
+
+        card.remove();
+        status.textContent = `Trace ${result.status}.`;
+
+        if (!list.children.length) status.textContent = 'No pending traces.';
+      } catch (error) {
+        status.textContent = error.message;
+        buttons.forEach((button) => (button.disabled = false));
+      }
+    }
+
+    async function loadPendingTraces() {
+      try {
+        const response = await fetch('/api/admin/traces', { headers: { Accept: 'application/json' } });
+        const result = await response.json();
+
+        if (!response.ok) throw new Error(result.error || 'Could not load traces.');
+        if (!result.traces.length) {
+          status.textContent = 'No pending traces.';
+          return;
+        }
+
+        for (const trace of result.traces) {
+          const card = template.content.firstElementChild.cloneNode(true);
+          const photo = card.querySelector('.moderation-card__photo');
+
+          card.querySelector('.moderation-card__gift').textContent = trace.giftNumber
+            ? `TRACE #${trace.giftNumber}`
+            : `Gift ${trace.gift}`;
+          card.querySelector('.moderation-card__name').textContent = trace.name || 'Anonymous';
+          card.querySelector('.moderation-card__location').textContent = trace.location || 'Location not provided';
+          card.querySelector('.moderation-card__message').textContent = trace.message;
+          card.querySelector('.moderation-card__date').textContent = new Date(trace.createdAt).toLocaleString();
+          card.querySelector('.moderation-card__date').dateTime = trace.createdAt;
+
+          if (trace.photoUrl) photo.src = trace.photoUrl;
+          else photo.remove();
+
+          card.querySelectorAll('[data-action]').forEach((button) => {
+            button.addEventListener('click', () => moderate(card, trace.id, button.dataset.action));
+          });
+
+          list.append(card);
+        }
+
+        status.textContent = `${result.traces.length} pending trace${result.traces.length === 1 ? '' : 's'}.`;
+      } catch (error) {
+        status.textContent = error.message;
+      }
+    }
+
+    loadPendingTraces();
+  </script>
+</Layout>
