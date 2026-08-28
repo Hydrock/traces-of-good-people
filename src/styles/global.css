@@ -534,7 +534,20 @@ button:disabled {
 }
 
 .collection-header {
+  display: grid;
+  gap: clamp(2rem, 7vw, 7rem);
+  align-items: center;
   padding-block: clamp(4rem, 10vw, 8rem);
+}
+
+.collection-header__illustration {
+  margin: 0;
+}
+
+.collection-header__illustration img {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .collection-header h1 {
@@ -819,6 +832,10 @@ button:disabled {
 
   .people-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .collection-header {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 
   .moderation-card {

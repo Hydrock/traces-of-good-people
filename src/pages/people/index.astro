@@ -1,5 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { Image } from 'astro:assets';
+import people from '../../assets/people.png';
 ---
 
 <Layout
@@ -7,8 +9,18 @@ import Layout from '../../layouts/Layout.astro';
   description="Messages and photographs from good people met around the world."
 >
   <header class="collection-header">
-    <p class="eyebrow">People</p>
-    <h1>Traces left along the way.</h1>
+    <figure class="collection-header__illustration">
+      <Image
+        src={people}
+        alt="A diverse group of travellers"
+        loading="eager"
+      />
+    </figure>
+
+    <div>
+      <p class="eyebrow">People</p>
+      <h1>Traces left along the way.</h1>
+    </div>
   </header>
 
   <ol class="people-grid" data-people-list></ol>
