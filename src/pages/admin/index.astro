@@ -5,7 +5,7 @@ import Layout from '../../layouts/Layout.astro';
 <Layout title="Moderation — Traces of Good People" description="Private moderation dashboard.">
   <header class="admin-header">
     <p class="eyebrow">Admin</p>
-    <h1>Pending traces.</h1>
+    <h1>Traces.</h1>
     <nav class="admin-nav" aria-label="Admin navigation">
       <a href="/admin" aria-current="page">Moderation</a>
       <a href="/admin/gifts">Gift generator</a>
@@ -13,7 +13,15 @@ import Layout from '../../layouts/Layout.astro';
     <p class="admin-status" role="status" aria-live="polite">Loading…</p>
   </header>
 
-  <div class="moderation-list"></div>
+  <section class="admin-section" aria-labelledby="pending-heading">
+    <h2 id="pending-heading">Pending</h2>
+    <div class="moderation-list" data-list="pending"></div>
+  </section>
+
+  <section class="admin-section" aria-labelledby="approved-heading">
+    <h2 id="approved-heading">Approved</h2>
+    <div class="moderation-list" data-list="approved"></div>
+  </section>
 
   <template id="trace-template">
     <article class="moderation-card">
@@ -33,14 +41,20 @@ import Layout from '../../layouts/Layout.astro';
   </template>
 
   <script>
-    const list = document.querySelector('.moderation-list');
+    const pendingList = document.querySelector('[data-list="pending"]');
+    const approvedList = document.querySelector('[data-list="approved"]');
     const status = document.querySelector('.admin-status');
     const template = document.querySelector('#trace-template');
 
     async function moderate(card, id, action) {
+      if (action === 'delete' && !window.confirm('Delete this approved trace and its photo permanently?')) {
+        return;
+      }
+
       const buttons = card.querySelectorAll('button');
       buttons.forEach((button) => (button.disabled = true));
-      status.textContent = `${action === 'approve' ? 'Approving' : 'Rejecting'} trace…`;
+      const actionLabels = { approve: 'Approving', reject: 'Rejecting', delete: 'Deleting' };
+      status.textContent = `${actionLabels[action]} trace…`;
 
       try {
         const response = await fetch(`/api/admin/traces/${encodeURIComponent(id)}`, {
@@ -54,17 +68,49 @@ import Layout from '../../layouts/Layout.astro';
 
         if (!response.ok) throw new Error(result.error || 'Moderation failed.');
 
-        card.remove();
+        await loadTraces();
         status.textContent = `Trace ${result.status}.`;
-
-        if (!list.children.length) status.textContent = 'No pending traces.';
       } catch (error) {
         status.textContent = error.message;
         buttons.forEach((button) => (button.disabled = false));
       }
     }
 
-    async function loadPendingTraces() {
+    function renderTrace(trace, list, approved = false) {
+      const card = template.content.firstElementChild.cloneNode(true);
+      const photo = card.querySelector('.moderation-card__photo');
+
+      card.querySelector('.moderation-card__gift').textContent = trace.giftNumber
+        ? `TRACE #${trace.giftNumber}`
+        : `Gift ${trace.gift}`;
+      card.querySelector('.moderation-card__name').textContent = trace.name || 'Anonymous';
+      card.querySelector('.moderation-card__location').textContent = trace.location || 'Location not provided';
+      card.querySelector('.moderation-card__message').textContent = trace.message;
+      card.querySelector('.moderation-card__date').textContent = new Date(trace.createdAt).toLocaleString();
+      card.querySelector('.moderation-card__date').dateTime = trace.createdAt;
+
+      if (trace.photoUrl) photo.src = trace.photoUrl;
+      else photo.remove();
+
+      if (approved) {
+        const actions = card.querySelector('.moderation-card__actions');
+        actions.replaceChildren();
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'button-danger';
+        deleteButton.type = 'button';
+        deleteButton.textContent = 'Delete permanently';
+        deleteButton.addEventListener('click', () => moderate(card, trace.id, 'delete'));
+        actions.append(deleteButton);
+      } else {
+        card.querySelectorAll('[data-action]').forEach((button) => {
+          button.addEventListener('click', () => moderate(card, trace.id, button.dataset.action));
+        });
+      }
+
+      list.append(card);
+    }
+
+    async function loadTraces() {
       try {
         const response = await fetch('/api/admin/traces', { headers: { Accept: 'application/json' } });
         const result = await response.json().catch(() => ({
@@ -72,40 +118,16 @@ import Layout from '../../layouts/Layout.astro';
         }));
 
         if (!response.ok) throw new Error(result.error || 'Could not load traces.');
-        if (!result.traces.length) {
-          status.textContent = 'No pending traces.';
-          return;
-        }
-
-        for (const trace of result.traces) {
-          const card = template.content.firstElementChild.cloneNode(true);
-          const photo = card.querySelector('.moderation-card__photo');
-
-          card.querySelector('.moderation-card__gift').textContent = trace.giftNumber
-            ? `TRACE #${trace.giftNumber}`
-            : `Gift ${trace.gift}`;
-          card.querySelector('.moderation-card__name').textContent = trace.name || 'Anonymous';
-          card.querySelector('.moderation-card__location').textContent = trace.location || 'Location not provided';
-          card.querySelector('.moderation-card__message').textContent = trace.message;
-          card.querySelector('.moderation-card__date').textContent = new Date(trace.createdAt).toLocaleString();
-          card.querySelector('.moderation-card__date').dateTime = trace.createdAt;
-
-          if (trace.photoUrl) photo.src = trace.photoUrl;
-          else photo.remove();
-
-          card.querySelectorAll('[data-action]').forEach((button) => {
-            button.addEventListener('click', () => moderate(card, trace.id, button.dataset.action));
-          });
-
-          list.append(card);
-        }
-
-        status.textContent = `${result.traces.length} pending trace${result.traces.length === 1 ? '' : 's'}.`;
+        pendingList.replaceChildren();
+        approvedList.replaceChildren();
+        result.traces.forEach((trace) => renderTrace(trace, pendingList));
+        (result.approved || []).forEach((trace) => renderTrace(trace, approvedList, true));
+        status.textContent = `${result.traces.length} pending, ${(result.approved || []).length} approved.`;
       } catch (error) {
         status.textContent = error.message;
       }
     }
 
-    loadPendingTraces();
+    loadTraces();
   </script>
 </Layout>

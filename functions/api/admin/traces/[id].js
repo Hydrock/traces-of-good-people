@@ -1,4 +1,8 @@
 import { isAdmin, jsonResponse, unauthorized } from '../../../lib/admin.js';
+import {
+  deletePublishedTrace,
+  getPublishedTrace,
+} from '../../../lib/github-traces.js';
 
 function encodeBase64(value) {
   const bytes = new TextEncoder().encode(value);
@@ -57,20 +61,29 @@ export async function onRequestPost({ request, env, params }) {
   if (!/^[a-zA-Z0-9-]+$/.test(id)) return jsonResponse({ error: 'Invalid trace ID.' }, 400);
 
   const body = await request.json().catch(() => null);
-  if (!['approve', 'reject'].includes(body?.action)) {
+  if (!['approve', 'reject', 'delete'].includes(body?.action)) {
     return jsonResponse({ error: 'Invalid action.' }, 400);
   }
 
-  const pendingKey = `traces/pending/${id}.json`;
-  const object = await env.TRACES_BUCKET.get(pendingKey);
-  if (!object) return jsonResponse({ error: 'Trace not found.' }, 404);
+  const sourceStatus = body.action === 'delete' ? 'approved' : 'pending';
+  const sourceKey = `traces/${sourceStatus}/${id}.json`;
+  const object = await env.TRACES_BUCKET.get(sourceKey);
+  const published = body.action === 'delete' ? await getPublishedTrace(id, env) : null;
+  if (!object && !published) return jsonResponse({ error: 'Trace not found.' }, 404);
 
-  const trace = await object.json();
-  if (trace.id !== id || trace.status !== 'pending') {
-    return jsonResponse({ error: 'Invalid pending trace.' }, 409);
+  const trace = object ? await object.json() : published.trace;
+  if (trace.id !== id || trace.status !== sourceStatus) {
+    return jsonResponse({ error: `Invalid ${sourceStatus} trace.` }, 409);
   }
 
   try {
+    if (body.action === 'delete') {
+      await deletePublishedTrace(id, env);
+      await env.TRACES_BUCKET.delete(sourceKey);
+      if (trace.photo) await env.MEDIA_BUCKET.delete(trace.photo);
+      return jsonResponse({ id, status: 'deleted' });
+    }
+
     if (body.action === 'approve') {
       trace.status = 'approved';
       await publishTrace(trace, env);
@@ -86,7 +99,7 @@ export async function onRequestPost({ request, env, params }) {
       if (trace.photo) await env.MEDIA_BUCKET.delete(trace.photo);
     }
 
-    await env.TRACES_BUCKET.delete(pendingKey);
+    await env.TRACES_BUCKET.delete(sourceKey);
     return jsonResponse({ id, status: trace.status });
   } catch (error) {
     console.error('Could not moderate trace', error);

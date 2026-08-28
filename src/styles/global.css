@@ -445,8 +445,18 @@ button:disabled {
 }
 
 .moderation-list {
-  margin-bottom: clamp(4rem, 10vw, 8rem);
   border-top: 1px solid #dedede;
+}
+
+.admin-section {
+  margin-bottom: clamp(4rem, 10vw, 8rem);
+}
+
+.admin-section > h2 {
+  margin-bottom: 1rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
 }
 
 .moderation-card {
@@ -502,6 +512,12 @@ button:disabled {
 .button-secondary {
   color: #111;
   background: #fff;
+}
+
+.button-danger {
+  color: #fff;
+  border-color: #b00020;
+  background: #b00020;
 }
 
 .gift-generator {
