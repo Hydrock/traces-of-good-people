@@ -144,7 +144,9 @@ h1 {
 }
 
 .home-illustration {
+  width: min(100%, 32rem);
   margin: 0;
+  justify-self: center;
 }
 
 .home-illustration img {
@@ -229,7 +231,9 @@ h1 {
 }
 
 .trace-illustration {
+  width: min(100%, 30rem);
   margin: 0;
+  justify-self: center;
 }
 
 .trace-illustration img {
@@ -518,7 +522,9 @@ button:disabled {
 }
 
 .about-illustration {
+  width: min(100%, 28rem);
   margin: 0;
+  justify-self: center;
 }
 
 .about-illustration img {
@@ -535,7 +541,9 @@ button:disabled {
 }
 
 .not-found__illustration {
+  width: min(100%, 30rem);
   margin: 0;
+  justify-self: center;
 }
 
 .not-found__illustration img {
@@ -562,7 +570,9 @@ button:disabled {
 }
 
 .collection-header__illustration {
+  width: min(100%, 32rem);
   margin: 0;
+  justify-self: center;
 }
 
 .collection-header__illustration img {
@@ -597,7 +607,7 @@ button:disabled {
 
 .person-card img {
   width: 100%;
-  aspect-ratio: 4 / 5;
+  height: clamp(17rem, 45vw, 22rem);
   display: block;
   object-fit: cover;
 }
@@ -648,10 +658,11 @@ button:disabled {
 }
 
 .person__photo {
-  width: 100%;
-  max-height: 80vh;
+  width: min(100%, 48rem);
+  max-height: 36rem;
   display: block;
   margin-bottom: clamp(2.5rem, 6vw, 5rem);
+  margin-inline: auto;
   object-fit: contain;
   object-position: left center;
 }
