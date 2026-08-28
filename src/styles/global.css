@@ -167,11 +167,20 @@ h1 {
 
 .language-gate__options button {
   min-height: 4rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
   padding: 1rem;
   border: 0;
   color: #111;
   background: #fff;
   text-align: start;
+}
+
+.language-gate__options button span {
+  flex: 0 0 auto;
+  font-size: 1.5rem;
+  line-height: 1;
 }
 
 .language-gate__options button:hover,
