@@ -17,6 +17,24 @@ const translations = { en, ru, es, fr, pt, ar, zh, hi };
   title="A gift — Traces of Good People"
   description="A small gift travelling between good people."
 >
+  <section class="language-gate" data-language-gate aria-labelledby="language-gate-heading">
+    <div class="language-gate__inner">
+      <p class="eyebrow">Traces of Good People</p>
+      <h1 id="language-gate-heading" tabindex="-1" data-gate-i18n="welcome">Welcome.</h1>
+      <p data-gate-i18n="chooseLanguage">Choose your language</p>
+      <div class="language-gate__options">
+        <button type="button" data-language-choice="en">English</button>
+        <button type="button" data-language-choice="ru">Русский</button>
+        <button type="button" data-language-choice="es">Español</button>
+        <button type="button" data-language-choice="fr">Français</button>
+        <button type="button" data-language-choice="pt">Português</button>
+        <button type="button" data-language-choice="ar">العربية</button>
+        <button type="button" data-language-choice="zh">中文</button>
+        <button type="button" data-language-choice="hi">हिन्दी</button>
+      </div>
+    </div>
+  </section>
+
   <p class="form-status" data-gift-status role="status">Loading gift…</p>
   <div data-gift-content hidden>
   <section class="language-picker">
@@ -141,16 +159,32 @@ const translations = { en, ru, es, fr, pt, ar, zh, hi };
     const languageSelect = document.querySelector('#language');
     const translationsElement = document.querySelector('#translations');
     const translations = JSON.parse(translationsElement.textContent);
+    const languageGate = document.querySelector('[data-language-gate]');
+    const languageGateHeading = document.querySelector('#language-gate-heading');
     const form = document.querySelector('#trace-form');
     const photoInput = document.querySelector('#photo');
     const submitButton = form.querySelector('button[type="submit"]');
     const formStatus = form.querySelector('.form-status');
 
-    function setLanguage(language) {
+    function readLanguageCookie() {
+      const cookie = document.cookie
+        .split('; ')
+        .find((value) => value.startsWith('traces_language='));
+      const language = cookie ? decodeURIComponent(cookie.split('=').slice(1).join('=')) : '';
+      return translations[language] ? language : null;
+    }
+
+    function saveLanguage(language) {
+      const secure = location.protocol === 'https:' ? '; Secure' : '';
+      document.cookie = `traces_language=${encodeURIComponent(language)}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
+    }
+
+    function setLanguage(language, persist = false) {
       const selected = translations[language] || translations.en;
 
       document.documentElement.lang = translations[language] ? language : 'en';
       document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+      languageSelect.value = translations[language] ? language : 'en';
 
       document.querySelectorAll('[data-i18n]').forEach((element) => {
         const translation = selected[element.dataset.i18n];
@@ -159,9 +193,39 @@ const translations = { en, ru, es, fr, pt, ar, zh, hi };
           element.textContent = translation;
         }
       });
+
+      if (persist) saveLanguage(language);
     }
 
-    languageSelect.addEventListener('change', () => setLanguage(languageSelect.value));
+    function closeLanguageGate(language) {
+      setLanguage(language, true);
+      languageGate.hidden = true;
+      document.body.classList.remove('language-gate-open');
+      document.querySelector('.trace-intro h1')?.focus({ preventScroll: true });
+    }
+
+    const savedLanguage = readLanguageCookie();
+
+    if (savedLanguage) {
+      languageGate.hidden = true;
+      setLanguage(savedLanguage);
+    } else {
+      const browserLanguage = navigator.language?.slice(0, 2);
+      const gateLanguage = translations[browserLanguage] ? browserLanguage : 'en';
+      const gateTranslation = translations[gateLanguage];
+      languageGate.lang = gateLanguage;
+      languageGate.dir = gateLanguage === 'ar' ? 'rtl' : 'ltr';
+      document.querySelector('[data-gate-i18n="welcome"]').textContent = gateTranslation.welcome;
+      document.querySelector('[data-gate-i18n="chooseLanguage"]').textContent = gateTranslation.chooseLanguage;
+      document.body.classList.add('language-gate-open');
+      languageGateHeading.focus({ preventScroll: true });
+    }
+
+    document.querySelectorAll('[data-language-choice]').forEach((button) => {
+      button.addEventListener('click', () => closeLanguageGate(button.dataset.languageChoice));
+    });
+
+    languageSelect.addEventListener('change', () => setLanguage(languageSelect.value, true));
 
     function withTimeout(promise, milliseconds, fallback) {
       return new Promise((resolve, reject) => {
@@ -254,7 +318,9 @@ const translations = { en, ru, es, fr, pt, ar, zh, hi };
 
         await sendForm(formData);
 
+        const submittedLanguage = languageSelect.value;
         form.reset();
+        languageSelect.value = submittedLanguage;
         formStatus.classList.add('form-status--success');
         formStatus.textContent = selected.success;
         formStatus.focus({ preventScroll: true });
