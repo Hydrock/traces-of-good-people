@@ -506,6 +506,23 @@ button:disabled {
   display: block;
 }
 
+.not-found {
+  min-height: calc(100vh - 10rem);
+  display: grid;
+  gap: clamp(2rem, 7vw, 7rem);
+  align-items: center;
+}
+
+.not-found__illustration {
+  margin: 0;
+}
+
+.not-found__illustration img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
 .prose {
   max-width: 44rem;
   margin: clamp(3rem, 8vw, 7rem) 0;
@@ -790,6 +807,10 @@ button:disabled {
 
   .about-hero {
     grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.8fr);
+  }
+
+  .not-found {
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.9fr);
   }
 
   .feedback {
