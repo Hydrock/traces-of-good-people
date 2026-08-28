@@ -4,30 +4,31 @@ import { Image } from 'astro:assets';
 import hand from '../assets/hand.png';
 ---
 
-<Layout>
+<Layout titleKey="homeMetaTitle" descriptionKey="homeMetaDescription">
   <section class="hero">
     <div class="hero__content">
-      <p class="eyebrow">A travelling project</p>
-      <h1>Good people are everywhere.</h1>
-      <p class="intro">
+      <p class="eyebrow" data-i18n="homeEyebrow">A travelling project</p>
+      <h1 data-i18n="homeTitle">Good people are everywhere.</h1>
+      <p class="intro" data-i18n="homeIntro">
         Small gifts move from one person to another. Each one leaves a trace of a
         meeting, a place, and a story worth remembering.
       </p>
-      <a class="text-link" href="/about">Read about the project <span aria-hidden="true">→</span></a>
+      <a class="text-link" href="/about"><span data-i18n="homeReadAbout">Read about the project</span> <span aria-hidden="true">→</span></a>
     </div>
 
     <figure class="home-illustration">
       <Image
         src={hand}
         alt="One person passing a small gift to another"
+        data-i18n-alt="homeImageAlt"
         loading="eager"
       />
     </figure>
   </section>
 
   <section class="statement" aria-labelledby="how-it-works">
-    <h2 id="how-it-works">A simple idea</h2>
-    <p>
+    <h2 id="how-it-works" data-i18n="homeIdeaTitle">A simple idea</h2>
+    <p data-i18n="homeIdeaText">
       If you received a gift with a QR code, it was given to mark a human
       connection. Scan it to continue its story.
     </p>

@@ -1,9 +1,21 @@
 ---
 import '../styles/global.css';
+import en from '../i18n/en.json';
+import ru from '../i18n/ru.json';
+import es from '../i18n/es.json';
+import fr from '../i18n/fr.json';
+import pt from '../i18n/pt.json';
+import ar from '../i18n/ar.json';
+import zh from '../i18n/zh.json';
+import hi from '../i18n/hi.json';
+
+const translations = { en, ru, es, fr, pt, ar, zh, hi };
 
 const {
   title = 'Traces of Good People',
   description = 'Small gifts. Random meetings. Good people around the world.',
+  titleKey = null,
+  descriptionKey = null,
 } = Astro.props;
 ---
 
@@ -15,18 +27,19 @@ const {
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    <script type="application/json" id="site-translations" set:html={JSON.stringify(translations)} />
   </head>
-  <body>
+  <body data-title-key={titleKey} data-description-key={descriptionKey}>
     <header class="site-header">
       <a class="wordmark" href="/">Traces of Good People</a>
       <div class="site-header__actions">
-        <nav aria-label="Main navigation">
-          <a href="/people">People</a>
-          <a href="/about">About</a>
+        <nav aria-label="Main navigation" data-i18n-aria-label="navLabel">
+          <a href="/people" data-i18n="navPeople">People</a>
+          <a href="/about" data-i18n="navAbout">About</a>
         </nav>
         <label class="site-language">
-          <span>Language</span>
-          <select data-language-select aria-label="Language">
+          <span data-i18n="languageLabel">Language</span>
+          <select data-language-select aria-label="Language" data-i18n-aria-label="languageLabel">
             <option value="en">🇬🇧 English</option>
             <option value="ru">🇷🇺 Русский</option>
             <option value="es">🇪🇸 Español</option>
@@ -40,30 +53,73 @@ const {
       </div>
     </header>
 
+    <script>
+      const translations = JSON.parse(document.querySelector('#site-translations').textContent);
+      const languageSelect = document.querySelector('[data-language-select]');
+      const languageCookie = document.cookie
+        .split('; ')
+        .find((value) => value.startsWith('traces_language='));
+      const cookieLanguage = languageCookie
+        ? decodeURIComponent(languageCookie.split('=').slice(1).join('='))
+        : '';
+      const savedLanguage = translations[cookieLanguage] ? cookieLanguage : null;
+
+      const siteI18n = {
+        translations,
+        language: savedLanguage || 'en',
+        hasSavedLanguage: Boolean(savedLanguage),
+        t(key, language = siteI18n.language) {
+          return translations[language]?.[key] || translations.en[key] || key;
+        },
+        formatDate(date) {
+          return new Intl.DateTimeFormat(siteI18n.language, {
+            dateStyle: 'long',
+            timeZone: 'UTC',
+          }).format(new Date(date));
+        },
+        setLanguage(language, persist = false) {
+          if (!translations[language]) language = 'en';
+          siteI18n.language = language;
+          document.documentElement.lang = language;
+          document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+          languageSelect.value = language;
+
+          document.querySelectorAll('[data-i18n]').forEach((element) => {
+            element.textContent = siteI18n.t(element.dataset.i18n);
+          });
+          document.querySelectorAll('[data-i18n-alt]').forEach((element) => {
+            element.alt = siteI18n.t(element.dataset.i18nAlt);
+          });
+          document.querySelectorAll('[data-i18n-aria-label]').forEach((element) => {
+            element.setAttribute('aria-label', siteI18n.t(element.dataset.i18nAriaLabel));
+          });
+
+          const titleKey = document.body.dataset.titleKey;
+          const descriptionKey = document.body.dataset.descriptionKey;
+          if (titleKey) document.title = siteI18n.t(titleKey);
+          if (descriptionKey) document.querySelector('meta[name="description"]').content = siteI18n.t(descriptionKey);
+
+          if (persist) {
+            const secure = location.protocol === 'https:' ? '; Secure' : '';
+            document.cookie = `traces_language=${encodeURIComponent(language)}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
+            siteI18n.hasSavedLanguage = true;
+          }
+
+          window.dispatchEvent(new CustomEvent('site-language-change', { detail: { language } }));
+        },
+      };
+
+      window.siteI18n = siteI18n;
+      siteI18n.setLanguage(siteI18n.language);
+      languageSelect.addEventListener('change', () => siteI18n.setLanguage(languageSelect.value, true));
+    </script>
+
     <main>
       <slot />
     </main>
 
     <footer class="site-footer">
-      <p>Small gifts. Random meetings. Good people.</p>
+      <p data-i18n="footerText">Small gifts. Random meetings. Good people.</p>
     </footer>
-
-    <script>
-      const languageSelect = document.querySelector('[data-language-select]');
-      const supportedLanguages = new Set(['en', 'ru', 'es', 'fr', 'pt', 'ar', 'zh', 'hi']);
-      const languageCookie = document.cookie
-        .split('; ')
-        .find((value) => value.startsWith('traces_language='));
-      const savedLanguage = languageCookie
-        ? decodeURIComponent(languageCookie.split('=').slice(1).join('='))
-        : '';
-
-      if (supportedLanguages.has(savedLanguage)) languageSelect.value = savedLanguage;
-
-      languageSelect.addEventListener('change', () => {
-        const secure = location.protocol === 'https:' ? '; Secure' : '';
-        document.cookie = `traces_language=${encodeURIComponent(languageSelect.value)}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
-      });
-    </script>
   </body>
 </html>

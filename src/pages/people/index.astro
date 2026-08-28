@@ -7,24 +7,27 @@ import people from '../../assets/people.png';
 <Layout
   title="People — Traces of Good People"
   description="Messages and photographs from good people met around the world."
+  titleKey="peopleMetaTitle"
+  descriptionKey="peopleMetaDescription"
 >
   <header class="collection-header">
     <figure class="collection-header__illustration">
       <Image
         src={people}
         alt="A diverse group of travellers"
+        data-i18n-alt="peopleImageAlt"
         loading="eager"
       />
     </figure>
 
     <div>
-      <p class="eyebrow">People</p>
-      <h1>Traces left along the way.</h1>
+      <p class="eyebrow" data-i18n="peopleEyebrow">People</p>
+      <h1 data-i18n="peopleTitle">Traces left along the way.</h1>
     </div>
   </header>
 
   <ol class="people-grid" data-people-list></ol>
-  <p class="empty-state" data-people-status>Loading traces…</p>
+  <p class="empty-state" data-people-status data-i18n="peopleLoading">Loading traces…</p>
 
   <template id="person-card-template">
     <li><a class="person-card"><div class="person-card__body"><p class="person-card__message"></p><div class="person-card__meta"></div></div></a></li>
@@ -34,13 +37,19 @@ import people from '../../assets/people.png';
     const list = document.querySelector('[data-people-list]');
     const status = document.querySelector('[data-people-status]');
     const template = document.querySelector('#person-card-template');
-    const formatDate = (date) => new Intl.DateTimeFormat('en', { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(date));
+    const i18n = window.siteI18n;
+    let traces = null;
+    let loadError = false;
 
-    try {
-      const response = await fetch('/api/traces');
-      if (!response.ok) throw new Error();
-      const { traces } = await response.json();
-      status.textContent = traces.length ? '' : 'No approved traces yet.';
+    function renderTraces() {
+      if (loadError) {
+        status.textContent = i18n.t('peopleError');
+        return;
+      }
+      if (!traces) return;
+      list.replaceChildren();
+      status.textContent = traces.length ? '' : i18n.t('peopleEmpty');
+
       for (const trace of traces) {
         const item = template.content.firstElementChild.cloneNode(true);
         const link = item.querySelector('a');
@@ -55,15 +64,25 @@ import people from '../../assets/people.png';
         }
         item.querySelector('.person-card__message').textContent = `“${trace.message}”`;
         const meta = item.querySelector('.person-card__meta');
-        for (const value of [trace.name || 'Anonymous', trace.location, formatDate(trace.createdAt)].filter(Boolean)) {
+        for (const value of [trace.name || i18n.t('anonymous'), trace.location, i18n.formatDate(trace.createdAt)].filter(Boolean)) {
           const span = document.createElement('span');
           span.textContent = value;
           meta.append(span);
         }
         list.append(item);
       }
-    } catch {
-      status.textContent = 'Could not load traces.';
     }
+
+    try {
+      const response = await fetch('/api/traces');
+      if (!response.ok) throw new Error();
+      ({ traces } = await response.json());
+      renderTraces();
+    } catch {
+      loadError = true;
+      renderTraces();
+    }
+
+    window.addEventListener('site-language-change', renderTraces);
   </script>
 </Layout>

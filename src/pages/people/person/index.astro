@@ -5,11 +5,13 @@ import Layout from '../../../layouts/Layout.astro';
 <Layout
   title="A person — Traces of Good People"
   description="A trace left by a good person met along the way."
+  titleKey="personMetaTitle"
+  descriptionKey="personMetaDescription"
 >
   <article class="person">
-    <a class="text-link person__back" href="/people"><span aria-hidden="true">←</span> All people</a>
+    <a class="text-link person__back" href="/people"><span aria-hidden="true">←</span> <span data-i18n="allPeople">All people</span></a>
 
-    <p class="empty-state" data-person-status>Loading trace…</p>
+    <p class="empty-state" data-person-status data-i18n="personLoading">Loading trace…</p>
     <img class="person__photo" data-person-photo hidden />
     <div class="person__story" data-person-story hidden>
       <p class="person__message"></p>
@@ -23,31 +25,47 @@ import Layout from '../../../layouts/Layout.astro';
   <script>
     const status = document.querySelector('[data-person-status]');
     const story = document.querySelector('[data-person-story]');
+    const i18n = window.siteI18n;
     const id = location.pathname.split('/').filter(Boolean).at(-1);
-    try {
-      const response = await fetch(`/api/traces/${encodeURIComponent(id || '')}`);
-      if (!response.ok) throw new Error();
-      const trace = await response.json();
-      const person = trace.name || 'Anonymous';
-      document.title = `${person} — Traces of Good People`;
+    let trace = null;
+    let loadError = false;
+
+    function renderTrace() {
+      if (loadError) {
+        status.textContent = i18n.t('personNotFound');
+        return;
+      }
+      if (!trace) return;
+      const person = trace.name || i18n.t('anonymous');
+      document.title = `${person} — ${i18n.t('homeMetaTitle')}`;
       document.querySelector('.person__message').textContent = `“${trace.message}”`;
       document.querySelector('.person__meta strong').textContent = person;
-      const location = document.querySelector('[data-person-location]');
-      location.textContent = trace.location || '';
-      location.hidden = !trace.location;
+      const personLocation = document.querySelector('[data-person-location]');
+      personLocation.textContent = trace.location || '';
+      personLocation.hidden = !trace.location;
       const time = document.querySelector('.person__meta time');
       time.dateTime = trace.createdAt;
-      time.textContent = new Intl.DateTimeFormat('en', { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(trace.createdAt));
+      time.textContent = i18n.formatDate(trace.createdAt);
       if (trace.photoUrl) {
         const photo = document.querySelector('[data-person-photo]');
         photo.src = trace.photoUrl;
-        photo.alt = `Shared by ${person}`;
+        photo.alt = `${i18n.t('sharedBy')} ${person}`;
         photo.hidden = false;
       }
+    }
+
+    try {
+      const response = await fetch(`/api/traces/${encodeURIComponent(id || '')}`);
+      if (!response.ok) throw new Error();
+      trace = await response.json();
+      renderTrace();
       status.hidden = true;
       story.hidden = false;
     } catch {
-      status.textContent = 'Trace not found.';
+      loadError = true;
+      renderTrace();
     }
+
+    window.addEventListener('site-language-change', renderTrace);
   </script>
 </Layout>
