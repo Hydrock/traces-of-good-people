@@ -29,12 +29,12 @@ a {
 .site-header,
 .site-footer,
 main {
-  width: min(100% - 2rem, 90rem);
+  width: min(100% - 2rem, 80rem);
   margin-inline: auto;
 }
 
 .site-header {
-  min-height: 5rem;
+  min-height: 4.5rem;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -94,19 +94,19 @@ main {
 .hero,
 .page,
 .trace-intro {
-  padding-block: clamp(4rem, 12vw, 10rem);
+  padding-block: clamp(3rem, 8vw, 6.5rem);
 }
 
 .hero {
-  min-height: calc(100vh - 5rem);
+  min-height: min(42rem, calc(100vh - 4.5rem));
   display: grid;
-  gap: clamp(2rem, 7vw, 7rem);
+  gap: clamp(2rem, 5vw, 4.5rem);
   align-items: center;
 }
 
 .hero h1 {
   max-width: 10ch;
-  font-size: clamp(3.25rem, 8vw, 5.75rem);
+  font-size: clamp(2.9rem, 6vw, 5.1rem);
 }
 
 .eyebrow {
@@ -126,7 +126,7 @@ p {
 h1 {
   max-width: 12ch;
   margin-bottom: 2rem;
-  font-size: clamp(3.25rem, 13vw, 9.5rem);
+  font-size: clamp(2.9rem, 8vw, 6rem);
   font-weight: 600;
   line-height: 0.9;
   letter-spacing: -0.075em;
@@ -134,8 +134,8 @@ h1 {
 
 .intro {
   max-width: 38rem;
-  margin-bottom: 2.5rem;
-  font-size: clamp(1.2rem, 3vw, 1.75rem);
+  margin-bottom: 2rem;
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
   line-height: 1.35;
 }
 
@@ -174,8 +174,8 @@ h1 {
 
 .language-gate h1 {
   max-width: none;
-  margin: clamp(2rem, 8vh, 6rem) 0 1rem;
-  font-size: clamp(4rem, 17vw, 11rem);
+  margin: clamp(2rem, 6vh, 4rem) 0 1rem;
+  font-size: clamp(3.5rem, 13vw, 8rem);
   line-height: 0.85;
   letter-spacing: -0.065em;
 }
@@ -222,9 +222,9 @@ h1 {
 }
 
 .trace-intro {
-  min-height: calc(100vh - 5rem);
+  min-height: min(42rem, calc(100vh - 4.5rem));
   display: grid;
-  gap: clamp(2rem, 7vw, 7rem);
+  gap: clamp(2rem, 5vw, 4.5rem);
   align-items: center;
 }
 
@@ -249,14 +249,14 @@ h1 {
 
 .feedback {
   display: grid;
-  gap: clamp(3rem, 8vw, 8rem);
-  padding-block: clamp(4rem, 10vw, 8rem);
+  gap: clamp(2.5rem, 6vw, 5rem);
+  padding-block: clamp(3rem, 8vw, 6rem);
   border-top: 1px solid #dedede;
 }
 
 .feedback-heading h2 {
   margin-bottom: 1rem;
-  font-size: clamp(2.5rem, 7vw, 5.5rem);
+  font-size: clamp(2.4rem, 6vw, 4.5rem);
   line-height: 0.95;
   letter-spacing: -0.055em;
 }
@@ -488,7 +488,7 @@ button:disabled {
 .statement {
   display: grid;
   gap: 2rem;
-  padding-block: clamp(4rem, 10vw, 8rem);
+  padding-block: clamp(3rem, 8vw, 6rem);
   border-top: 1px solid #dedede;
 }
 
@@ -501,19 +501,19 @@ button:disabled {
 .statement p {
   max-width: 25ch;
   margin-bottom: 0;
-  font-size: clamp(2rem, 6vw, 4.5rem);
+  font-size: clamp(1.8rem, 5vw, 3.5rem);
   line-height: 1.05;
   letter-spacing: -0.045em;
 }
 
 .page h1 {
   max-width: 11ch;
-  font-size: clamp(3.25rem, 10vw, 7.5rem);
+  font-size: clamp(2.9rem, 7vw, 5.5rem);
 }
 
 .about-hero {
   display: grid;
-  gap: clamp(2rem, 7vw, 7rem);
+  gap: clamp(2rem, 5vw, 4.5rem);
   align-items: center;
 }
 
@@ -528,9 +528,9 @@ button:disabled {
 }
 
 .not-found {
-  min-height: calc(100vh - 10rem);
+  min-height: min(38rem, calc(100vh - 9rem));
   display: grid;
-  gap: clamp(2rem, 7vw, 7rem);
+  gap: clamp(2rem, 5vw, 4.5rem);
   align-items: center;
 }
 
@@ -546,8 +546,8 @@ button:disabled {
 
 .prose {
   max-width: 44rem;
-  margin: clamp(3rem, 8vw, 7rem) 0;
-  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+  margin: clamp(3rem, 6vw, 5rem) 0;
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
 }
 
 .prose p {
@@ -556,9 +556,9 @@ button:disabled {
 
 .collection-header {
   display: grid;
-  gap: clamp(2rem, 7vw, 7rem);
+  gap: clamp(2rem, 5vw, 4.5rem);
   align-items: center;
-  padding-block: clamp(4rem, 10vw, 8rem);
+  padding-block: clamp(3rem, 8vw, 6rem);
 }
 
 .collection-header__illustration {
@@ -574,20 +574,20 @@ button:disabled {
 .collection-header h1 {
   max-width: 10ch;
   margin-bottom: 0;
-  font-size: clamp(3.25rem, 10vw, 8rem);
+  font-size: clamp(2.8rem, 7vw, 5.25rem);
 }
 
 .people-grid {
   display: grid;
   gap: 1px;
-  margin: 0 0 clamp(4rem, 10vw, 8rem);
+  margin: 0 0 clamp(3rem, 8vw, 6rem);
   padding: 1px;
   background: #dedede;
   list-style: none;
 }
 
 .person-card {
-  min-height: 28rem;
+  min-height: 24rem;
   display: flex;
   flex-direction: column;
   color: #111;
@@ -607,13 +607,13 @@ button:disabled {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 3rem;
+  gap: 2rem;
   padding: clamp(1.25rem, 4vw, 2rem);
 }
 
 .person-card__message {
   margin-bottom: 0;
-  font-size: clamp(1.75rem, 5vw, 3.25rem);
+  font-size: clamp(1.65rem, 4vw, 2.75rem);
   line-height: 1.05;
   letter-spacing: -0.04em;
 }
@@ -633,25 +633,25 @@ button:disabled {
 }
 
 .empty-state {
-  margin-bottom: 8rem;
-  padding-block: 3rem;
+  margin-bottom: 6rem;
+  padding-block: 2.5rem;
   border-top: 1px solid #dedede;
 }
 
 .person {
-  padding-block: clamp(2rem, 6vw, 5rem) clamp(5rem, 12vw, 10rem);
+  padding-block: clamp(2rem, 5vw, 4rem) clamp(4rem, 9vw, 7rem);
 }
 
 .person__back {
   display: inline-block;
-  margin-bottom: clamp(3rem, 8vw, 7rem);
+  margin-bottom: clamp(2.5rem, 6vw, 5rem);
 }
 
 .person__photo {
   width: 100%;
   max-height: 80vh;
   display: block;
-  margin-bottom: clamp(3rem, 8vw, 7rem);
+  margin-bottom: clamp(2.5rem, 6vw, 5rem);
   object-fit: contain;
   object-position: left center;
 }
@@ -661,8 +661,8 @@ button:disabled {
 }
 
 .person__message {
-  margin-bottom: clamp(3rem, 7vw, 6rem);
-  font-size: clamp(2.5rem, 8vw, 7rem);
+  margin-bottom: clamp(2.5rem, 6vw, 4.5rem);
+  font-size: clamp(2.25rem, 6vw, 5.5rem);
   line-height: 0.98;
   letter-spacing: -0.055em;
 }
@@ -824,7 +824,7 @@ button:disabled {
   .site-header,
   .site-footer,
   main {
-    width: min(100% - 5rem, 90rem);
+    width: min(100% - 5rem, 80rem);
   }
 
   .statement {
