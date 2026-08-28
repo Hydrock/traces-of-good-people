@@ -1,0 +1,107 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Gift generator — Traces of Good People" description="Private gift and QR generator.">
+  <header class="admin-header">
+    <p class="eyebrow">Admin / Gifts</p>
+    <h1>Create gifts.</h1>
+    <nav class="admin-nav" aria-label="Admin navigation">
+      <a href="/admin">Moderation</a>
+      <a href="/admin/gifts" aria-current="page">Gift generator</a>
+    </nav>
+  </header>
+
+  <section class="gift-generator">
+    <form id="gift-form">
+      <div class="field">
+        <label for="quantity">Quantity</label>
+        <input id="quantity" name="quantity" type="number" min="1" max="50" value="1" required />
+      </div>
+      <div class="field">
+        <label for="site-url">Website address</label>
+        <input id="site-url" name="siteUrl" type="url" required />
+        <small>Used as the destination encoded in each QR code.</small>
+      </div>
+      <button type="submit">Create gifts</button>
+      <p class="form-status" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <section class="gift-results" aria-label="Generated gifts"></section>
+
+  <template id="gift-template">
+    <article class="gift-card">
+      <canvas width="256" height="256"></canvas>
+      <div>
+        <p class="gift-card__number"></p>
+        <p class="gift-card__code"></p>
+        <p class="gift-card__url"></p>
+        <a class="text-link" download>Download QR</a>
+      </div>
+    </article>
+  </template>
+
+  <script>
+    import QRCode from 'qrcode';
+
+    const form = document.querySelector('#gift-form');
+    const siteUrlInput = document.querySelector('#site-url');
+    const status = form.querySelector('.form-status');
+    const results = document.querySelector('.gift-results');
+    const template = document.querySelector('#gift-template');
+
+    siteUrlInput.value = window.location.origin;
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+
+      const button = form.querySelector('button');
+      const quantity = Number(form.elements.quantity.value);
+      button.disabled = true;
+      status.textContent = 'Creating gifts…';
+
+      try {
+        const response = await fetch('/api/admin/gifts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quantity }),
+        });
+        const result = await response.json();
+
+        if (!response.ok) throw new Error(result.error || 'Could not create gifts.');
+
+        results.replaceChildren();
+        const baseUrl = siteUrlInput.value.replace(/\/$/, '');
+
+        for (const gift of result.gifts) {
+          const card = template.content.firstElementChild.cloneNode(true);
+          const canvas = card.querySelector('canvas');
+          const url = `${baseUrl}/t/${gift.code}`;
+
+          await QRCode.toCanvas(canvas, url, {
+            width: 256,
+            margin: 2,
+            color: { dark: '#000000', light: '#ffffff' },
+          });
+
+          card.querySelector('.gift-card__number').textContent = `TRACE #${gift.id}`;
+          card.querySelector('.gift-card__code').textContent = gift.code;
+          card.querySelector('.gift-card__url').textContent = url;
+
+          const download = card.querySelector('[download]');
+          download.href = canvas.toDataURL('image/png');
+          download.download = `trace-${gift.id}-${gift.code}.png`;
+          results.append(card);
+        }
+
+        status.textContent = `${result.gifts.length} gift${result.gifts.length === 1 ? '' : 's'} created.`;
+      } catch (error) {
+        status.textContent = error.message;
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</Layout>
