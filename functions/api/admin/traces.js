@@ -1,7 +1,7 @@
 import { isAdmin, jsonResponse, unauthorized } from '../../lib/admin.js';
-import gift0001 from '../../../data/gifts/0001.json';
+import gifts from '../../generated/gifts.js';
 
-const giftsByCode = new Map([gift0001].map((gift) => [gift.code, gift]));
+const giftsByCode = new Map(gifts.map((gift) => [gift.code, gift]));
 
 export async function onRequestGet({ request, env }) {
   if (!isAdmin(request, env)) return unauthorized();

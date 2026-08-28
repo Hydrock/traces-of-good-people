@@ -145,3 +145,4 @@ vite.config.ts.timestamp-*
 .DS_Store
 .dev.vars
 .wrangler/
+functions/generated/gifts.js

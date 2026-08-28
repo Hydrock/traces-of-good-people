@@ -1,6 +1,4 @@
-import gift0001 from '../../data/gifts/0001.json';
-
-const gifts = [gift0001];
+import gifts from '../generated/gifts.js';
 const languages = new Set(['en', 'ru', 'es', 'fr', 'pt', 'ar', 'zh', 'hi']);
 const photoTypes = {
   'image/jpeg': 'jpg',
