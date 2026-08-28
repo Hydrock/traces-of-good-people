@@ -1,0 +1,19 @@
+{
+  "languageLabel": "Language",
+  "heading": "This gift found its way to you.",
+  "intro": "It is part of a small travelling project about chance meetings and the good people we find along the way.",
+  "formHeading": "Leave your trace",
+  "formIntro": "Share as much or as little as you like.",
+  "nameLabel": "Name or nickname",
+  "optional": "optional",
+  "locationLabel": "City and country",
+  "messageLabel": "Your message",
+  "messageHelp": "Need an idea? Tell me something about yourself, what made you smile today, or what a traveller should see in your city.",
+  "photoLabel": "Photo",
+  "photoHelp": "Choose a photo or take one with your camera.",
+  "privacyHeading": "Before you submit",
+  "privacyText": "Do not share sensitive or private information such as your home address, phone number, identification documents, passwords, or financial information.",
+  "consentLabel": "I understand that my message and photo may become publicly visible after moderation.",
+  "submit": "Send trace",
+  "unavailable": "Submissions will open soon."
+}

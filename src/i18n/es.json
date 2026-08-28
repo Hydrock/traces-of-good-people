@@ -1,0 +1,19 @@
+{
+  "languageLabel": "Idioma",
+  "heading": "Este regalo encontró el camino hasta ti.",
+  "intro": "Forma parte de un pequeño proyecto sobre encuentros casuales y las buenas personas que conocemos en el camino.",
+  "formHeading": "Deja tu huella",
+  "formIntro": "Comparte tanto o tan poco como quieras.",
+  "nameLabel": "Nombre o apodo",
+  "optional": "opcional",
+  "locationLabel": "Ciudad y país",
+  "messageLabel": "Tu mensaje",
+  "messageHelp": "¿Necesitas una idea? Cuéntame algo sobre ti, qué te hizo sonreír hoy o qué debería visitar un viajero en tu ciudad.",
+  "photoLabel": "Foto",
+  "photoHelp": "Elige una foto o toma una con tu cámara.",
+  "privacyHeading": "Antes de enviar",
+  "privacyText": "No compartas información sensible o privada como tu domicilio, teléfono, documentos de identidad, contraseñas o información financiera.",
+  "consentLabel": "Entiendo que mi mensaje y mi foto pueden hacerse públicos después de la moderación.",
+  "submit": "Enviar huella",
+  "unavailable": "Los envíos estarán disponibles pronto."
+}

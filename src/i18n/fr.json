@@ -1,0 +1,19 @@
+{
+  "languageLabel": "Langue",
+  "heading": "Ce cadeau a trouvé son chemin jusqu’à vous.",
+  "intro": "Il fait partie d’un petit projet sur les rencontres fortuites et les belles personnes croisées en chemin.",
+  "formHeading": "Laissez votre trace",
+  "formIntro": "Partagez autant ou aussi peu que vous le souhaitez.",
+  "nameLabel": "Prénom ou pseudonyme",
+  "optional": "facultatif",
+  "locationLabel": "Ville et pays",
+  "messageLabel": "Votre message",
+  "messageHelp": "Besoin d’une idée ? Parlez-moi de vous, de ce qui vous a fait sourire aujourd’hui ou de ce qu’un voyageur devrait voir dans votre ville.",
+  "photoLabel": "Photo",
+  "photoHelp": "Choisissez une photo ou prenez-en une avec votre appareil.",
+  "privacyHeading": "Avant d’envoyer",
+  "privacyText": "Ne partagez aucune information sensible ou privée telle que votre adresse, numéro de téléphone, pièce d’identité, mot de passe ou information financière.",
+  "consentLabel": "Je comprends que mon message et ma photo pourront devenir publics après modération.",
+  "submit": "Envoyer",
+  "unavailable": "Les envois ouvriront bientôt."
+}

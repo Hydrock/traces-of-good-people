@@ -1,0 +1,19 @@
+{
+  "languageLabel": "Idioma",
+  "heading": "Este presente encontrou o caminho até você.",
+  "intro": "Ele faz parte de um pequeno projeto sobre encontros ao acaso e as boas pessoas que conhecemos pelo caminho.",
+  "formHeading": "Deixe seu rastro",
+  "formIntro": "Compartilhe o quanto quiser.",
+  "nameLabel": "Nome ou apelido",
+  "optional": "opcional",
+  "locationLabel": "Cidade e país",
+  "messageLabel": "Sua mensagem",
+  "messageHelp": "Precisa de uma ideia? Conte algo sobre você, o que fez você sorrir hoje ou o que um viajante deveria conhecer na sua cidade.",
+  "photoLabel": "Foto",
+  "photoHelp": "Escolha uma foto ou tire uma com a câmera.",
+  "privacyHeading": "Antes de enviar",
+  "privacyText": "Não compartilhe informações sensíveis ou privadas, como endereço, telefone, documentos de identidade, senhas ou informações financeiras.",
+  "consentLabel": "Entendo que minha mensagem e foto podem se tornar públicas após a moderação.",
+  "submit": "Enviar rastro",
+  "unavailable": "Os envios estarão disponíveis em breve."
+}

@@ -1,0 +1,19 @@
+{
+  "languageLabel": "语言",
+  "heading": "这份礼物找到了你。",
+  "intro": "它属于一个关于偶然相遇，以及旅途中遇见的善良人们的小项目。",
+  "formHeading": "留下你的足迹",
+  "formIntro": "你可以自由决定分享多少。",
+  "nameLabel": "名字或昵称",
+  "optional": "选填",
+  "locationLabel": "城市和国家",
+  "messageLabel": "你的留言",
+  "messageHelp": "不知道写什么？可以介绍一下自己、说说今天什么让你微笑，或者推荐旅行者在你的城市应该去看的地方。",
+  "photoLabel": "照片",
+  "photoHelp": "选择一张照片或用相机拍摄。",
+  "privacyHeading": "提交之前",
+  "privacyText": "请勿分享敏感或私人信息，例如家庭住址、电话号码、身份证件、密码或财务信息。",
+  "consentLabel": "我明白我的留言和照片经审核后可能会公开显示。",
+  "submit": "提交足迹",
+  "unavailable": "提交功能即将开放。"
+}
