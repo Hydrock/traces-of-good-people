@@ -1,0 +1,58 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+export function getStaticPaths() {
+  const giftFiles = import.meta.glob('../../../data/gifts/*.json', {
+    eager: true,
+    import: 'default',
+  });
+
+  const codes = new Set();
+
+  return Object.entries(giftFiles).map(([file, gift]) => {
+    const validGift =
+      gift &&
+      /^\d{4}$/.test(gift.id) &&
+      /^[A-Z0-9]{5}$/.test(gift.code) &&
+      /^\d{4}-\d{2}-\d{2}$/.test(gift.createdAt);
+
+    if (!validGift) {
+      throw new Error(`Invalid gift data in ${file}`);
+    }
+
+    if (codes.has(gift.code)) {
+      throw new Error(`Duplicate gift code: ${gift.code}`);
+    }
+
+    codes.add(gift.code);
+
+    return {
+      params: { code: gift.code },
+      props: { gift },
+    };
+  });
+}
+
+const { gift } = Astro.props;
+---
+
+<Layout
+  title={`TRACE #${gift.id} — Traces of Good People`}
+  description={`The story of TRACE #${gift.id}, a small gift travelling between good people.`}
+>
+  <article class="trace-intro">
+    <p class="trace-number">TRACE #{gift.id}</p>
+    <h1>This gift found its way to you.</h1>
+    <p class="intro">
+      It is part of a small travelling project about chance meetings and the
+      good people we find along the way.
+    </p>
+
+    <div class="trace-note">
+      <p>
+        Soon, you will be able to leave a short message and add your own trace
+        to its story.
+      </p>
+    </div>
+  </article>
+</Layout>

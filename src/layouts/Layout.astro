@@ -1,0 +1,35 @@
+---
+import '../styles/global.css';
+
+const {
+  title = 'Traces of Good People',
+  description = 'Small gifts. Random meetings. Good people around the world.',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href="/">Traces of Good People</a>
+      <nav aria-label="Main navigation">
+        <a href="/about">About</a>
+      </nav>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <p>Small gifts. Random meetings. Good people.</p>
+    </footer>
+  </body>
+</html>
