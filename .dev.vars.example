@@ -1,5 +1,5 @@
 # Used only by Wrangler on localhost. Never enable LOCAL_ADMIN in production.
 LOCAL_ADMIN=true
 
-# Required only to test Approve and gift generation against GitHub.
-# Use a test repository if you do not want local actions to change the real repository.
+# Optional. Photo URLs use /media on the current origin by default.
+# MEDIA_PUBLIC_URL=https://example.com/media

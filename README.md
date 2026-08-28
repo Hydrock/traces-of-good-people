@@ -1,105 +1,593 @@
 # Traces of Good People
 
-Small gifts. Random meetings. Good people around the world.
+Минималистичный сайт о людях, встреченных во время путешествий. Небольшой физический подарок получает уникальный QR-код. Получатель открывает ссылку, оставляет сообщение и при желании фотографию. После ручной модерации запись появляется в публичной галерее.
 
-## Local website
+Рабочий сайт: [traces-of-good-people.pages.dev](https://traces-of-good-people.pages.dev/)
 
-Use Astro when you only need to work on static pages:
+## Содержание
+
+- [Как устроен проект](#как-устроен-проект)
+- [Структура репозитория](#структура-репозитория)
+- [Маршруты](#маршруты)
+- [Хранение данных](#хранение-данных)
+- [Основные сценарии](#основные-сценарии)
+- [Локальный запуск](#локальный-запуск)
+- [Переменные и bindings](#переменные-и-bindings)
+- [Развёртывание в Cloudflare](#развёртывание-в-cloudflare)
+- [Локализация](#локализация)
+- [Фотографии](#фотографии)
+- [Безопасность и ограничения](#безопасность-и-ограничения)
+- [Проверка проекта](#проверка-проекта)
+- [Обслуживание](#обслуживание)
+- [Диагностика проблем](#диагностика-проблем)
+
+## Как устроен проект
+
+Проект использует небольшую serverless-архитектуру без базы данных и постоянного backend-сервера:
+
+```text
+Браузер
+  │
+  ├── статические страницы, CSS, изображения ── Cloudflare Pages
+  │
+  └── /api/* и /media/* ─────────────────────── Pages Functions
+                                                    │
+                         ┌──────────────────────────┴──────────────────────┐
+                         │                                                 │
+                 TRACES_BUCKET                                    MEDIA_BUCKET
+             подарки и записи JSON                              фотографии WebP/JPEG/PNG
+```
+
+- **Astro** генерирует статические страницы.
+- **Cloudflare Pages** публикует содержимое `dist/`.
+- **Cloudflare Pages Functions** обрабатывают формы, админские операции и динамические запросы.
+- **Cloudflare R2** хранит все изменяемые данные.
+- **Cloudflare Access** защищает административные страницы и API.
+- **GitHub** хранит только исходный код и запускает деплой. Пользовательские данные в Git не записываются.
+
+Новые подарки, заявки и решения модератора становятся доступны сразу. Пересборка сайта для них не нужна.
+
+## Технологии
+
+- Astro 5
+- JavaScript без TypeScript
+- HTML и обычный CSS
+- JSON-файлы переводов
+- Cloudflare Pages и Pages Functions
+- два Cloudflare R2 bucket
+- пакет `qrcode` для генерации QR-кодов
+- Wrangler для полного локального запуска и ручного деплоя
+
+В проекте нет React, Vue, Tailwind, базы данных, ORM и отдельного backend-сервера.
+
+## Структура репозитория
+
+```text
+data/
+  gifts/                    исходные тестовые подарки
+functions/
+  api/
+    gifts/[code].js         получение подарка по коду
+    traces.js               список записей и приём формы
+    traces/[id].js          получение одной публичной записи
+    admin/                  генератор и модерация
+  lib/
+    admin.js                проверка доступа администратора
+    storage.js              простые операции с R2
+    seed-gifts.js           начальные подарки для R2
+  media/[[path]].js         безопасная выдача фотографий из R2
+  people/[id].js            динамический маршрут страницы записи
+  t/[code].js               динамический маршрут страницы подарка
+src/
+  assets/                   иллюстрации сайта
+  components/               небольшие Astro-компоненты
+  i18n/                     восемь JSON-файлов переводов
+  layouts/Layout.astro      общий каркас страниц
+  pages/                    статические страницы и shell-страницы
+  scripts/                  клиентская логика
+  styles/global.css         общие стили
+public/                     публичные статические файлы
+wrangler.jsonc              Pages output и R2 bindings
+```
+
+Страницы `/t/:code` и `/people/:id` используют статический HTML-каркас, а необходимые данные получают через API в браузере. Благодаря этому новые данные из R2 доступны без нового Astro build.
+
+## Маршруты
+
+### Публичные страницы
+
+| Маршрут | Назначение |
+| --- | --- |
+| `/` | Главная страница проекта |
+| `/about` | Описание идеи проекта |
+| `/t/:code` | Страница подарка и форма отправки следа |
+| `/people` | Галерея одобренных записей |
+| `/people/:id` | Страница отдельной одобренной записи |
+| `/404` | Страница «не найдено» |
+
+### Административные страницы
+
+| Маршрут | Назначение |
+| --- | --- |
+| `/admin` | Очередь модерации и список опубликованных записей |
+| `/admin/gifts` | Создание подарков и скачивание QR-кодов |
+
+В production оба административных маршрута должны быть защищены Cloudflare Access.
+
+### API
+
+| Метод и маршрут | Назначение | Доступ |
+| --- | --- | --- |
+| `GET /api/gifts/:code` | Проверить код и получить номер подарка | публичный |
+| `GET /api/traces` | Получить одобренные записи | публичный |
+| `POST /api/traces` | Отправить новую запись | публичный |
+| `GET /api/traces/:id` | Получить одобренную запись | публичный |
+| `GET /api/admin/traces` | Получить pending и approved | администратор |
+| `POST /api/admin/traces/:id` | Выполнить `approve`, `reject` или `delete` | администратор |
+| `POST /api/admin/gifts` | Создать от 1 до 50 подарков | администратор |
+| `GET /media/photos/*` | Получить опубликованный объект фотографии | публичный |
+
+Все ответы с изменяемыми данными отдаются с запретом кеширования. Фотографии, напротив, имеют длительный immutable cache, потому что их ключи уникальны.
+
+## Хранение данных
+
+### R2 buckets
+
+Проект использует два bucket:
+
+| Binding | Bucket | Содержимое |
+| --- | --- | --- |
+| `TRACES_BUCKET` | `traces-of-good-people-traces` | подарки и JSON-записи |
+| `MEDIA_BUCKET` | `traces-of-good-people-media` | пользовательские фотографии |
+
+Оба bucket могут оставаться приватными. Фотографии выдаются через функцию `/media/*`, прямой публичный R2-домен не обязателен.
+
+### Ключи объектов
+
+```text
+TRACES_BUCKET
+  gifts/K7M2Q.json
+  traces/pending/2026-<uuid>.json
+  traces/approved/2026-<uuid>.json
+  traces/rejected/2026-<uuid>.json
+
+MEDIA_BUCKET
+  photos/2026-<uuid>.webp
+  photos/2026-<uuid>.jpg
+  photos/2026-<uuid>.png
+```
+
+При одобрении JSON перемещается из `pending` в `approved`. При отклонении он перемещается в `rejected`, а фотография удаляется. При удалении опубликованной записи удаляются и JSON, и связанная фотография.
+
+### Формат подарка
+
+```json
+{
+  "id": "0047",
+  "code": "K7M2Q",
+  "createdAt": "2026-08-28",
+  "givenAt": null,
+  "city": null,
+  "country": null
+}
+```
+
+- `id` — последовательный публичный номер с ведущими нулями.
+- `code` — случайный пятисимвольный код URL.
+- Публичный номер невозможно использовать вместо приватного кода.
+
+Начальные подарки из репозитория автоматически копируются в R2 при первом обращении. Новые подарки генератор сразу записывает в R2.
+
+### Формат записи
+
+```json
+{
+  "id": "2026-32becf13-86a9-4b67-821f-0eaa2e2647fa",
+  "gift": "K7M2Q",
+  "name": "Amir",
+  "location": "Lahore, Pakistan",
+  "message": "Nice to meet you!",
+  "photo": "photos/2026-32becf13-86a9-4b67-821f-0eaa2e2647fa.webp",
+  "language": "en",
+  "status": "pending",
+  "createdAt": "2026-08-28T12:00:00.000Z"
+}
+```
+
+В объекте хранится ключ фотографии, а публичный URL формируется сервером. Поля `name`, `location` и `photo` необязательны; `message`, корректный gift code и явное согласие обязательны.
+
+## Основные сценарии
+
+### Получатель подарка
+
+1. Пользователь сканирует QR и открывает `/t/K7M2Q`.
+2. Если язык ещё не выбран, отображается крупный экран выбора языка.
+3. API проверяет существование кода подарка.
+4. Пользователь заполняет сообщение, при желании добавляет имя, место и фотографию.
+5. Пользователь подтверждает уведомление о приватности и публичной публикации.
+6. Сервер валидирует данные и сохраняет запись со статусом `pending`.
+7. После успешной отправки форма скрывается и показывается ссылка на отзывы других людей.
+
+### Модерация
+
+1. Администратор проходит Cloudflare Access и открывает `/admin`.
+2. Dashboard загружает pending-записи из R2.
+3. `Approve` публикует запись, перемещая JSON в `approved`.
+4. `Reject` перемещает JSON в `rejected` и удаляет фотографию.
+5. Опубликованную запись можно удалить; её фотография также удаляется.
+
+Только записи из `traces/approved/` доступны публичным API и галерее.
+
+### Создание подарков
+
+1. Администратор открывает `/admin/gifts`.
+2. Указывает количество от 1 до 50.
+3. Сервер находит следующий последовательный номер и создаёт уникальные коды.
+4. Результаты сразу сохраняются в R2.
+5. Интерфейс строит QR-коды с production URL и позволяет скачать их как изображения.
+
+В кодах не используются визуально неоднозначные символы. Максимальный публичный номер — `9999`.
+
+## Локальный запуск
+
+Требуются Node.js 22 или новее и npm.
+
+### Только интерфейс Astro
+
+Этот режим удобен для работы с текстами, стилями и статическими страницами:
 
 ```bash
 npm install
 npm run dev
 ```
 
-The site opens at `http://localhost:4321`. Forms and admin API calls do not work
-in this mode because Astro does not run Cloudflare Pages Functions.
+Откройте `http://localhost:4321`.
 
-## Full local environment
+Astro dev server не запускает Cloudflare Pages Functions. Поэтому API, отправка формы, динамические подарки, фотографии и админские действия в этом режиме полноценно не работают.
 
-Install Wrangler once, copy the local variables, build the site, and start
-Cloudflare Pages locally:
+### Полное локальное окружение
 
 ```bash
-npm install --save-dev wrangler
+npm install
 cp .dev.vars.example .dev.vars
 npm run dev:full
 ```
 
-Open the URL printed by Wrangler, normally `http://localhost:8788`. Local R2
-data is stored under `.wrangler/` and is ignored by Git.
+Команда сначала создаёт production build, затем запускает Cloudflare Pages локально. Откройте адрес из вывода Wrangler, обычно `http://localhost:8788`.
 
-`LOCAL_ADMIN=true` works only for requests whose hostname is `localhost` or
-`127.0.0.1`. Do not configure this variable in Cloudflare production.
+Локальные R2-данные Wrangler хранит в `.wrangler/`. Каталог исключён из Git. Это отдельное хранилище: оно не читает и не изменяет production R2.
 
-Submitting, moderating, and generating gifts can be tested entirely locally.
-All mutable data is stored in the local R2 emulation under `.wrangler/`.
+После изменений Astro-файлов перезапустите `npm run dev:full`, потому что этот сценарий сначала собирает `dist`, а затем обслуживает готовую сборку.
 
-## Production setup
+### Доступ к локальной админке
 
-1. Create two R2 buckets:
+В `.dev.vars` используется:
 
-   ```bash
-   npx wrangler r2 bucket create traces-of-good-people-traces
-   npx wrangler r2 bucket create traces-of-good-people-media
-   ```
+```text
+LOCAL_ADMIN=true
+```
 
-2. In Cloudflare Pages, connect `Hydrock/traces-of-good-people` and configure:
+Обход авторизации работает только для hostname `localhost` или `127.0.0.1`. Никогда не добавляйте `LOCAL_ADMIN` в production или preview environment Cloudflare.
 
-   ```text
-   Build command: npm run build
-   Build output directory: dist
-   Node.js version: 22 or newer
-   ```
+### Команды npm
 
-3. Add the two R2 bindings from `wrangler.jsonc` to both Production and Preview:
+| Команда | Назначение |
+| --- | --- |
+| `npm run dev` | Astro dev server без Functions |
+| `npm run dev:full` | Build и полная локальная Pages-среда |
+| `npm run build` | Production build в `dist/` |
+| `npm run preview` | Предпросмотр только Astro build |
+| `npm run deploy` | Build и ручной Pages deploy |
 
-   ```text
-   TRACES_BUCKET -> traces-of-good-people-traces
-   MEDIA_BUCKET  -> traces-of-good-people-media
-   ```
+## Переменные и bindings
 
-4. Configure the runtime administrator variable:
+### Runtime variables
 
-   ```text
-   ADMIN_EMAILS  comma-separated administrator emails
-   ```
+| Имя | Обязательно | Где используется |
+| --- | --- | --- |
+| `ADMIN_EMAILS` | production | Список разрешённых email через запятую |
+| `LOCAL_ADMIN` | только localhost | Локальный обход Cloudflare Access; значение `true` |
+| `MEDIA_PUBLIC_URL` | нет | Необязательная базовая ссылка фотографий; по умолчанию `/media` текущего домена |
 
-   `GITHUB_TOKEN`, `GITHUB_REPOSITORY`, and `GITHUB_BRANCH` are no longer used
-   and may be removed from the Pages project.
+Пример `ADMIN_EMAILS`:
 
-5. Protect these paths with a Cloudflare Access self-hosted application:
+```text
+owner@example.com,second-admin@example.com
+```
 
-   ```text
-   /admin*
-   /api/admin*
-   ```
+Сравнение email выполняется без учёта регистра. `ADMIN_EMAILS` должен совпадать с пользователями, разрешёнными политикой Cloudflare Access.
 
-   Allow only the same email addresses listed in `ADMIN_EMAILS`. The public
-   submission endpoint `/api/traces` must remain outside the Access policy.
+### R2 bindings
 
-6. Deploy through the Git integration, or manually:
+Bindings — не строковые environment variables. В Pages settings они должны иметь тип **R2 bucket**:
 
-   ```bash
-   npm run build
-   npx wrangler pages deploy dist --project-name traces-of-good-people
-   ```
+```text
+TRACES_BUCKET -> traces-of-good-people-traces
+MEDIA_BUCKET  -> traces-of-good-people-media
+```
 
-7. Add a Cloudflare rate-limiting rule for `POST /api/traces` if real traffic
-   shows spam. Start conservatively and keep legitimate QR visitors unblocked.
+Конфигурация также зафиксирована в `wrangler.jsonc`. Проверьте bindings отдельно для Production и Preview, если используете preview deployments.
 
-Gift and trace JSON metadata stays in the private `TRACES_BUCKET`. Photos stay
-in `MEDIA_BUCKET` and are read through the public `/media/photos/...` endpoint.
-The five original repository gifts are copied into R2 automatically on first
-use. New gifts and moderation changes are available immediately and do not
-trigger a deployment.
+Переменные `GITHUB_TOKEN`, `GITHUB_REPOSITORY` и `GITHUB_BRANCH` приложению не нужны. Старые значения можно удалить из Cloudflare Pages.
 
-## Production checklist
+## Развёртывание в Cloudflare
 
-- Scan a real QR code and open `/t/[code]` on a phone.
-- Switch every language, including Arabic RTL.
-- Submit text with and without a photo.
-- Confirm the new item appears only in `/admin` as pending.
-- Approve it and confirm it appears in `/people` immediately.
-- Delete it and confirm it disappears without a Pages rebuild.
-- Reject a test item and confirm its photo returns 404.
-- Confirm unauthenticated requests cannot open `/admin` or `/api/admin`.
+### 1. Создать R2 buckets
+
+После `npx wrangler login`:
+
+```bash
+npx wrangler r2 bucket create traces-of-good-people-traces
+npx wrangler r2 bucket create traces-of-good-people-media
+```
+
+### 2. Создать Pages project
+
+Подключите GitHub-репозиторий и задайте:
+
+```text
+Build command: npm run build
+Build output directory: dist
+Node.js version: 22 или новее
+```
+
+Pages автоматически найдёт каталог `functions/` и соберёт Pages Functions.
+
+### 3. Добавить bindings и переменные
+
+В настройках Pages project:
+
+1. Добавьте два R2 binding из раздела выше.
+2. Добавьте runtime variable `ADMIN_EMAILS`.
+3. Не добавляйте `LOCAL_ADMIN`.
+4. Повторите настройки для Preview, если preview deployments должны быть полностью рабочими.
+5. Запустите новый deployment после изменения конфигурации.
+
+### 4. Настроить Cloudflare Access
+
+Создайте Self-hosted application для домена Pages и защитите два пути:
+
+```text
+/admin*
+/api/admin*
+```
+
+Создайте Allow policy только для email администраторов. Включите One-time PIN или другой выбранный identity provider.
+
+Публичные маршруты, особенно `POST /api/traces`, не должны попадать под Access policy. Иначе посетители не смогут отправлять форму.
+
+Pages Function дополнительно проверяет заголовок `Cf-Access-Authenticated-User-Email` и `ADMIN_EMAILS`. Поэтому одной открытой страницы `/admin` недостаточно для доступа к административному API.
+
+### 5. Выполнить деплой
+
+Обычно достаточно push в ветку, подключённую к Pages. Для ручного деплоя:
+
+```bash
+npm run deploy
+```
+
+После деплоя проверьте production URL, а не только preview URL.
+
+## Локализация
+
+Поддерживаются:
+
+- English (`en`)
+- Русский (`ru`)
+- Español (`es`)
+- Français (`fr`)
+- Português (`pt`)
+- العربية (`ar`)
+- 中文 (`zh`)
+- हिन्दी (`hi`)
+
+Переводы находятся в `src/i18n/<language>.json`. English используется как fallback.
+
+Выбранный язык хранится в cookie `traces_language` один год с `SameSite=Lax`; при HTTPS также используется `Secure`. Общий селектор языка доступен на публичных страницах. На странице подарка при отсутствии cookie сначала показывается обязательный полноэкранный выбор.
+
+Для арабского языка документ переключается в RTL. Даты форматируются через `Intl.DateTimeFormat`. Пользовательские сообщения не переводятся автоматически.
+
+### Как изменить или добавить перевод
+
+1. Добавьте одинаковый ключ во все JSON-файлы в `src/i18n/`.
+2. Используйте ключ в существующей клиентской функции перевода или Astro-шаблоне.
+3. Для нового языка добавьте JSON-файл и зарегистрируйте код в списках поддерживаемых языков на клиенте и сервере.
+4. Проверьте fallback, мобильную ширину и направление текста.
+
+Не оставляйте ключ только в одном языке: интерфейс должен всегда иметь английское fallback-значение.
+
+## Фотографии
+
+Фотография необязательна. Если её нет, публичные карточки используют `src/assets/nophoto.png`, чтобы сохранять стабильную вёрстку.
+
+Перед отправкой браузер пытается:
+
+1. прочитать выбранный снимок;
+2. уменьшить максимальную сторону до 1800 px;
+3. преобразовать изображение в JPEG с качеством около `0.82`;
+4. при невозможности преобразования отправить допустимый оригинал.
+
+Форма позволяет выбрать существующее изображение из галереи или сделать фото средствами мобильной ОС. Клиентская подготовка ограничена таймаутом, а сама загрузка имеет таймаут, чтобы Safari на iPhone не оставался бесконечно в состоянии `Sending`.
+
+Сервер принимает только JPEG, PNG и WebP, проверяет MIME type и сигнатуру файла. Максимальный размер файла — 8 MB, максимальный `Content-Length` всего запроса — 10 MB.
+
+Фотография записывается в `MEDIA_BUCKET`, а JSON — только после успешной загрузки. Публичный URL выглядит так:
+
+```text
+/media/photos/<trace-id>.<extension>
+```
+
+Функция `/media/*` разрешает только ключи с префиксом `photos/`, передаёт корректный content type, ETag и заголовок `X-Content-Type-Options: nosniff`.
+
+## Безопасность и ограничения
+
+Сервер выполняет следующие проверки:
+
+| Поле или запрос | Ограничение |
+| --- | --- |
+| gift code | существует в R2 и имеет 5 букв/цифр |
+| message | обязательно, максимум 1000 символов |
+| name | необязательно, максимум 80 символов |
+| location | необязательно, максимум 120 символов |
+| language | только один из восьми поддерживаемых кодов |
+| consent | обязательно, значение `yes` |
+| photo | JPEG/PNG/WebP, максимум 8 MB |
+| весь запрос | максимум 10 MB по `Content-Length` |
+| генерация подарков | от 1 до 50 за запрос |
+
+Дополнительно:
+
+- заявки никогда не публикуются автоматически;
+- administrative POST-запросы проверяют same-origin `Origin`;
+- секреты не передаются в клиентский JavaScript;
+- публичные API не возвращают pending/rejected записи;
+- пользовательские значения выводятся как текст, а не как доверенный HTML;
+- проект намеренно не собирает email, телефон, точные координаты или социальные аккаунты;
+- перед отправкой показывается предупреждение о приватных данных и требуется явное согласие.
+
+Для защиты от реального спама рекомендуется начать с Cloudflare rate limiting для `POST /api/traces`. Turnstile стоит добавлять только при необходимости.
+
+## Проверка проекта
+
+### Автоматическая проверка
+
+```bash
+npm run build
+```
+
+Сборка должна завершиться без ошибок Astro и Pages-compatible JavaScript.
+
+### Полный локальный smoke test
+
+1. Запустите `npm run dev:full`.
+2. Откройте тестовый `/t/<code>`.
+3. Выберите язык.
+4. Отправьте запись без фотографии.
+5. Проверьте, что она появилась в `/admin` как pending.
+6. Одобрите запись и сразу откройте `/people`.
+7. Откройте страницу отдельной записи.
+8. Повторите отправку с фотографией.
+9. Проверьте reject и delete, включая удаление фотографии.
+10. Создайте несколько подарков в `/admin/gifts` и откройте один из новых URL.
+
+### Production checklist
+
+- Отсканировать настоящий QR на iPhone и Android.
+- Проверить обязательный выбор языка и все восемь переводов.
+- Проверить арабский RTL.
+- Отправить текст с фотографией и без неё.
+- Убедиться, что индикатор отправки заметен, а форма после успеха скрывается.
+- Убедиться, что pending-запись не видна в `/people`.
+- Выполнить Approve и увидеть запись без пересборки.
+- Выполнить Reject и проверить, что фотография возвращает 404.
+- Удалить approved-запись и проверить исчезновение страницы и фото.
+- Проверить, что новый подарок работает сразу после генерации.
+- Открыть `/admin` без Access-сессии и увидеть экран авторизации.
+- Вызвать `/api/admin/traces` без авторизации и получить `401 Unauthorized`.
+
+## Обслуживание
+
+### Что требует деплоя
+
+Новый deployment нужен для изменений:
+
+- Astro-страниц и компонентов;
+- CSS и клиентского JavaScript;
+- переводов;
+- Pages Functions;
+- конфигурации Wrangler.
+
+Deployment не нужен для:
+
+- генерации подарка;
+- отправки заявки;
+- approve/reject/delete;
+- появления записи в публичной галерее.
+
+### Резервное копирование
+
+R2 является единственным production-хранилищем изменяемых данных. Для резервной копии сохраняйте оба bucket:
+
+- `TRACES_BUCKET` нужен для восстановления подарков и записей;
+- `MEDIA_BUCKET` нужен для восстановления фотографий.
+
+Не удаляйте bucket при пересоздании Pages project. Pages project и R2 bucket — независимые ресурсы.
+
+### Ручной поиск записи
+
+Если запись видна на сайте, её ID находится в URL `/people/<id>`. В Cloudflare Dashboard ищите:
+
+```text
+traces/approved/<id>.json
+```
+
+Связанный ключ фотографии указан в поле `photo` JSON. Для pending и rejected используйте соответствующий префикс. Штатное удаление approved-записи лучше выполнять через `/admin`, чтобы JSON и фотография удалились вместе.
+
+### Масштабирование
+
+Текущая реализация получает списки объектов R2 и подходит для небольшого личного проекта. Если записей станет очень много, первым возможным улучшением будет пагинация. База данных до появления реальной проблемы не требуется.
+
+## Диагностика проблем
+
+### В админке отображается `Unauthorized`
+
+Проверьте:
+
+1. `ADMIN_EMAILS` задан именно для production runtime.
+2. Email совпадает с адресом Cloudflare Access.
+3. Access защищает `/admin*` и `/api/admin*`.
+4. После изменения переменной выполнен новый deployment.
+5. В production отсутствует `LOCAL_ADMIN`.
+
+Сам факт успешного входа в Access не заменяет `ADMIN_EMAILS`: приложение выполняет обе проверки.
+
+### `/admin` открывается без авторизации
+
+Скорее всего, Access destination не включает правильный путь. Для Pages hostname добавьте destinations `/admin*` и `/api/admin*`, сохраните приложение и проверьте в приватном окне браузера.
+
+### `Unknown gift code`
+
+- убедитесь, что оба environment используют правильный `TRACES_BUCKET`;
+- проверьте код без лишних символов;
+- для только что созданного подарка обновите страницу и проверьте ответ `GET /api/gifts/<CODE>`;
+- не используйте публичный номер `0047` вместо случайного кода вроде `K7M2Q`.
+
+Новые подарки находятся в R2 и не должны ждать GitHub build.
+
+### Фотография прикрепилась, но URL возвращает 404
+
+- проверьте binding `MEDIA_BUCKET`;
+- убедитесь, что объект существует под ключом `photos/...`;
+- проверьте, что JSON содержит именно ключ объекта, а не устаревший внешний URL;
+- rejected и удалённые записи намеренно теряют фотографию;
+- при использовании `MEDIA_PUBLIC_URL` проверьте его значение или временно удалите переменную, чтобы использовать `/media`.
+
+### На iPhone бесконечно отображается `Sending`
+
+Проверьте на последней версии production deployment. Текущий клиент ограничивает время конвертации и XHR-загрузки. Если проблема повторяется, сначала отправьте запись без фото, затем с небольшим JPEG и посмотрите Network response в Safari Web Inspector. Частые причины — слишком большой файл, нестабильная сеть или Access/rate-limit rule, случайно применённые к публичному API.
+
+### API возвращает HTML вместо JSON
+
+Ошибка вида `Unexpected token '<'` означает, что запрос получил HTML-страницу или redirect. Проверьте точный API URL, наличие Pages Functions в deployment и то, что Cloudflare Access не перехватывает публичный маршрут.
+
+### Локально форма или админка не работает
+
+Порт `4321` обслуживает только Astro. Для API используйте `npm run dev:full` и адрес Wrangler, обычно порт `8788`.
+
+### Pages Functions не собираются
+
+1. Сначала выполните `npm run build` локально.
+2. Проверьте imports внутри `functions/`: они должны ссылаться на существующие файлы, попавшие в Git.
+3. Не используйте экспериментальный синтаксис import attributes для JSON в Functions.
+4. Сравните build output directory с `dist` и проверьте `wrangler.jsonc`.
+
+## Принципы дальнейшей разработки
+
+- сохранять статическую основу и serverless-функции;
+- не добавлять базу данных без доказанной необходимости;
+- хранить изменяемые данные и фотографии только в R2;
+- не публиковать заявку до ручного approve;
+- сохранять простой JavaScript и минимальное число зависимостей;
+- не усложнять административный интерфейс до CMS;
+- проверять desktop, iPhone и Android после изменений формы или фотографий;
+- запускать `npm run build` перед каждым коммитом.
