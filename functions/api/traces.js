@@ -1,4 +1,4 @@
-import gift0001 from '../../data/gifts/0001.json' with { type: 'json' };
+import gift0001 from '../../data/gifts/0001.json';
 
 const gifts = [gift0001];
 const languages = new Set(['en', 'ru', 'es', 'fr', 'pt', 'ar', 'zh', 'hi']);

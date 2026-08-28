@@ -1,5 +1,5 @@
 import { isAdmin, jsonResponse, unauthorized } from '../../lib/admin.js';
-import gift0001 from '../../../data/gifts/0001.json' with { type: 'json' };
+import gift0001 from '../../../data/gifts/0001.json';
 
 const giftsByCode = new Map([gift0001].map((gift) => [gift.code, gift]));
 
