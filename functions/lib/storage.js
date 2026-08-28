@@ -1,4 +1,4 @@
-import seedGifts from '../generated/gifts.js';
+import seedGifts from './seed-gifts.js';
 
 export async function ensureSeedGifts(env) {
   await Promise.all(
