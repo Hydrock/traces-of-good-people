@@ -449,6 +449,27 @@ button:disabled {
   display: block;
 }
 
+.form--success > :not(.form-status, .form-success-illustration, .form-success-link) {
+  display: none;
+}
+
+.form-success-link {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1.5rem 0 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid #111;
+  font-size: 1.1rem;
+}
+
+.form-success-link[hidden] {
+  display: none;
+}
+
+.form-success-link .text-link {
+  justify-self: start;
+}
+
 @keyframes form-spinner {
   to { transform: rotate(360deg); }
 }

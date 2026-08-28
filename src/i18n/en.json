@@ -67,5 +67,7 @@
   "submit": "Send trace",
   "sending": "Sending…",
   "success": "Thank you. Your trace is waiting for moderation.",
+  "successExplore": "You can also read traces left by other people.",
+  "successExploreLink": "View people",
   "error": "Something went wrong. Please try again."
 }

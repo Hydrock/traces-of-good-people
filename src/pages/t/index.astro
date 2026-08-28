@@ -129,6 +129,10 @@ import sent from '../../assets/sended.png';
       <figure class="form-success-illustration" data-success-illustration hidden>
         <Image src={sent} alt="" loading="lazy" />
       </figure>
+      <p class="form-success-link" data-success-link hidden>
+        <span data-i18n="successExplore">You can also read traces left by other people.</span>
+        <a class="text-link" href="/people"><span data-i18n="successExploreLink">View people</span> <span aria-hidden="true">→</span></a>
+      </p>
     </form>
   </section>
 
@@ -165,6 +169,7 @@ import sent from '../../assets/sended.png';
     const submitButton = form.querySelector('button[type="submit"]');
     const formStatus = form.querySelector('.form-status');
     const successIllustration = form.querySelector('[data-success-illustration]');
+    const successLink = form.querySelector('[data-success-link]');
 
     function closeLanguageGate(language) {
       i18n.setLanguage(language, true);
@@ -272,9 +277,11 @@ import sent from '../../assets/sended.png';
 
       submitButton.disabled = true;
       form.setAttribute('aria-busy', 'true');
+      form.classList.remove('form--success');
       form.classList.add('form--sending');
       formStatus.classList.remove('form-status--success', 'form-status--error');
       successIllustration.hidden = true;
+      successLink.hidden = true;
       formStatus.textContent = i18n.t('sending');
 
       try {
@@ -292,7 +299,9 @@ import sent from '../../assets/sended.png';
         form.reset();
         languageSelect.value = submittedLanguage;
         formStatus.classList.add('form-status--success');
+        form.classList.add('form--success');
         successIllustration.hidden = false;
+        successLink.hidden = false;
         formStatus.textContent = i18n.t('success');
         formStatus.focus({ preventScroll: true });
         formStatus.scrollIntoView({ behavior: 'smooth', block: 'center' });

@@ -67,5 +67,7 @@
   "submit": "Enviar huella",
   "sending": "Enviando…",
   "success": "Gracias. Tu huella está pendiente de moderación.",
+  "successExplore": "Mientras tanto, puedes leer las huellas de otras personas.",
+  "successExploreLink": "Ver personas",
   "error": "Algo salió mal. Inténtalo de nuevo."
 }

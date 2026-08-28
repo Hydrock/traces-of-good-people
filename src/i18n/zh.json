@@ -67,5 +67,7 @@
   "submit": "提交足迹",
   "sending": "正在提交…",
   "success": "谢谢。你的足迹正在等待审核。",
+  "successExplore": "等待期间，你也可以看看其他人留下的足迹。",
+  "successExploreLink": "查看人们",
   "error": "出现错误，请重试。"
 }

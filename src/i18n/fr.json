@@ -67,5 +67,7 @@
   "submit": "Envoyer",
   "sending": "Envoi…",
   "success": "Merci. Votre trace est en attente de modération.",
+  "successExplore": "En attendant, vous pouvez découvrir les traces laissées par d’autres personnes.",
+  "successExploreLink": "Voir les personnes",
   "error": "Une erreur s’est produite. Veuillez réessayer."
 }

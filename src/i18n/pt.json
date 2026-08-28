@@ -67,5 +67,7 @@
   "submit": "Enviar rastro",
   "sending": "Enviando…",
   "success": "Obrigado. Seu rastro está aguardando moderação.",
+  "successExplore": "Enquanto isso, você pode conhecer os rastros deixados por outras pessoas.",
+  "successExploreLink": "Ver pessoas",
   "error": "Algo deu errado. Tente novamente."
 }
