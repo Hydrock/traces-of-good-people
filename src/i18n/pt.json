@@ -15,5 +15,7 @@
   "privacyText": "Não compartilhe informações sensíveis ou privadas, como endereço, telefone, documentos de identidade, senhas ou informações financeiras.",
   "consentLabel": "Entendo que minha mensagem e foto podem se tornar públicas após a moderação.",
   "submit": "Enviar rastro",
-  "unavailable": "Os envios estarão disponíveis em breve."
+  "sending": "Enviando…",
+  "success": "Obrigado. Seu rastro está aguardando moderação.",
+  "error": "Algo deu errado. Tente novamente."
 }

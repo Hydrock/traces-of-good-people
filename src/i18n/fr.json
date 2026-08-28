@@ -15,5 +15,7 @@
   "privacyText": "Ne partagez aucune information sensible ou privée telle que votre adresse, numéro de téléphone, pièce d’identité, mot de passe ou information financière.",
   "consentLabel": "Je comprends que mon message et ma photo pourront devenir publics après modération.",
   "submit": "Envoyer",
-  "unavailable": "Les envois ouvriront bientôt."
+  "sending": "Envoi…",
+  "success": "Merci. Votre trace est en attente de modération.",
+  "error": "Une erreur s’est produite. Veuillez réessayer."
 }

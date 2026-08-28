@@ -15,5 +15,7 @@
   "privacyText": "No compartas información sensible o privada como tu domicilio, teléfono, documentos de identidad, contraseñas o información financiera.",
   "consentLabel": "Entiendo que mi mensaje y mi foto pueden hacerse públicos después de la moderación.",
   "submit": "Enviar huella",
-  "unavailable": "Los envíos estarán disponibles pronto."
+  "sending": "Enviando…",
+  "success": "Gracias. Tu huella está pendiente de moderación.",
+  "error": "Algo salió mal. Inténtalo de nuevo."
 }

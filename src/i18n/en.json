@@ -15,5 +15,7 @@
   "privacyText": "Do not share sensitive or private information such as your home address, phone number, identification documents, passwords, or financial information.",
   "consentLabel": "I understand that my message and photo may become publicly visible after moderation.",
   "submit": "Send trace",
-  "unavailable": "Submissions will open soon."
+  "sending": "Sending…",
+  "success": "Thank you. Your trace is waiting for moderation.",
+  "error": "Something went wrong. Please try again."
 }

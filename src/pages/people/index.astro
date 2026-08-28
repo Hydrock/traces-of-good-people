@@ -1,0 +1,38 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { formatTraceDate, loadApprovedTraces } from '../../lib/traces.js';
+
+const traces = loadApprovedTraces();
+---
+
+<Layout
+  title="People — Traces of Good People"
+  description="Messages and photographs from good people met around the world."
+>
+  <header class="collection-header">
+    <p class="eyebrow">People</p>
+    <h1>Traces left along the way.</h1>
+  </header>
+
+  {traces.length > 0 ? (
+    <ol class="people-grid">
+      {traces.map((trace) => (
+        <li>
+          <a class:list={['person-card', { 'person-card--text': !trace.photoUrl }]} href={`/people/${trace.id}`}>
+            {trace.photoUrl && <img src={trace.photoUrl} alt="" loading="lazy" />}
+            <div class="person-card__body">
+              <p class="person-card__message">“{trace.message}”</p>
+              <div class="person-card__meta">
+                <span>{trace.name || 'Anonymous'}</span>
+                {trace.location && <span>{trace.location}</span>}
+                <time datetime={trace.createdAt}>{formatTraceDate(trace.createdAt)}</time>
+              </div>
+            </div>
+          </a>
+        </li>
+      ))}
+    </ol>
+  ) : (
+    <p class="empty-state">No approved traces yet.</p>
+  )}
+</Layout>

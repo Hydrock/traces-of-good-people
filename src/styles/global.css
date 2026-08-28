@@ -56,6 +56,11 @@ nav a {
   font-size: 0.9rem;
 }
 
+nav {
+  display: flex;
+  gap: 1rem;
+}
+
 main {
   flex: 1;
 }
@@ -316,6 +321,110 @@ button:disabled {
   margin-bottom: 1.5em;
 }
 
+.collection-header {
+  padding-block: clamp(4rem, 10vw, 8rem);
+}
+
+.collection-header h1 {
+  max-width: 10ch;
+  margin-bottom: 0;
+  font-size: clamp(3.25rem, 10vw, 8rem);
+}
+
+.people-grid {
+  display: grid;
+  gap: 1px;
+  margin: 0 0 clamp(4rem, 10vw, 8rem);
+  padding: 1px;
+  background: #dedede;
+  list-style: none;
+}
+
+.person-card {
+  min-height: 28rem;
+  display: flex;
+  flex-direction: column;
+  color: #111;
+  background: #fff;
+  text-decoration: none;
+}
+
+.person-card img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  display: block;
+  object-fit: cover;
+}
+
+.person-card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 3rem;
+  padding: clamp(1.25rem, 4vw, 2rem);
+}
+
+.person-card__message {
+  margin-bottom: 0;
+  font-size: clamp(1.75rem, 5vw, 3.25rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.person-card__meta,
+.person__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.person-card__meta time {
+  color: #5d5d5d;
+}
+
+.empty-state {
+  margin-bottom: 8rem;
+  padding-block: 3rem;
+  border-top: 1px solid #dedede;
+}
+
+.person {
+  padding-block: clamp(2rem, 6vw, 5rem) clamp(5rem, 12vw, 10rem);
+}
+
+.person__back {
+  display: inline-block;
+  margin-bottom: clamp(3rem, 8vw, 7rem);
+}
+
+.person__photo {
+  width: 100%;
+  max-height: 80vh;
+  display: block;
+  margin-bottom: clamp(3rem, 8vw, 7rem);
+  object-fit: contain;
+  object-position: left center;
+}
+
+.person__story {
+  max-width: 70rem;
+}
+
+.person__message {
+  margin-bottom: clamp(3rem, 7vw, 6rem);
+  font-size: clamp(2.5rem, 8vw, 7rem);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+
+.person__meta strong {
+  font-weight: 700;
+}
+
 .site-footer {
   padding-block: 2rem;
   border-top: 1px solid #dedede;
@@ -341,5 +450,15 @@ button:disabled {
 
   .feedback {
     grid-template-columns: 1fr 2fr;
+  }
+
+  .people-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 75rem) {
+  .people-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
