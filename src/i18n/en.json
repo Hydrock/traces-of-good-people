@@ -39,6 +39,7 @@
   "peopleEmpty": "No approved traces yet.",
   "peopleError": "Could not load traces.",
   "anonymous": "Anonymous",
+  "noPhotoAlt": "No photo provided",
   "personMetaTitle": "A person — Traces of Good People",
   "personMetaDescription": "A trace left by a good person met along the way.",
   "allPeople": "All people",

@@ -2,6 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import { Image } from 'astro:assets';
 import people from '../../assets/people.png';
+import noPhoto from '../../assets/nophoto.png';
 ---
 
 <Layout
@@ -30,7 +31,7 @@ import people from '../../assets/people.png';
   <p class="empty-state" data-people-status data-i18n="peopleLoading">Loading traces…</p>
 
   <template id="person-card-template">
-    <li><a class="person-card"><div class="person-card__body"><p class="person-card__message"></p><div class="person-card__meta"></div></div></a></li>
+    <li><a class="person-card"><Image src={noPhoto} alt="" loading="lazy" data-card-photo /><div class="person-card__body"><p class="person-card__message"></p><div class="person-card__meta"></div></div></a></li>
   </template>
 
   <script>
@@ -54,13 +55,9 @@ import people from '../../assets/people.png';
         const item = template.content.firstElementChild.cloneNode(true);
         const link = item.querySelector('a');
         link.href = `/people/${trace.id}`;
-        if (!trace.photoUrl) link.classList.add('person-card--text');
-        else {
-          const image = document.createElement('img');
+        if (trace.photoUrl) {
+          const image = item.querySelector('[data-card-photo]');
           image.src = trace.photoUrl;
-          image.alt = '';
-          image.loading = 'lazy';
-          link.prepend(image);
         }
         item.querySelector('.person-card__message').textContent = `“${trace.message}”`;
         const meta = item.querySelector('.person-card__meta');

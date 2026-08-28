@@ -1,5 +1,7 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import { Image } from 'astro:assets';
+import noPhoto from '../../../assets/nophoto.png';
 ---
 
 <Layout
@@ -12,7 +14,13 @@ import Layout from '../../../layouts/Layout.astro';
     <a class="text-link person__back" href="/people"><span aria-hidden="true">←</span> <span data-i18n="allPeople">All people</span></a>
 
     <p class="empty-state" data-person-status data-i18n="personLoading">Loading trace…</p>
-    <img class="person__photo" data-person-photo hidden />
+    <Image
+      class="person__photo"
+      src={noPhoto}
+      alt="No photo provided"
+      data-i18n-alt="noPhotoAlt"
+      data-person-photo
+    />
     <div class="person__story" data-person-story hidden>
       <p class="person__message"></p>
       <footer class="person__meta">
@@ -49,8 +57,9 @@ import Layout from '../../../layouts/Layout.astro';
       if (trace.photoUrl) {
         const photo = document.querySelector('[data-person-photo]');
         photo.src = trace.photoUrl;
+        photo.removeAttribute('width');
+        photo.removeAttribute('height');
         photo.alt = `${i18n.t('sharedBy')} ${person}`;
-        photo.hidden = false;
       }
     }
 
