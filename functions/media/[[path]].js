@@ -1,7 +1,8 @@
 export async function onRequestGet({ env, params }) {
   if (!env.MEDIA_BUCKET) return new Response('Media storage is not configured.', { status: 503 });
 
-  const key = String(params.path || '');
+  const segments = Array.isArray(params.path) ? params.path : [params.path];
+  const key = segments.filter(Boolean).join('/');
   if (!key.startsWith('photos/')) return new Response('Not found.', { status: 404 });
 
   const object = await env.MEDIA_BUCKET.get(key);
